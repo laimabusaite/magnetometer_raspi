@@ -1,7 +1,8 @@
 import pandas as pd
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
-from scipy.signal import savgol_filter, find_peaks, find_peaks_cwt
+from scipy.signal import find_peaks
+# from scipy.signal import savgol_filter, find_peaks, find_peaks_cwt
 import time
 
 
@@ -24,16 +25,16 @@ print(peaks)
 # plt.plot(df_crop['MW'][peaks], df_crop['ODMR'][peaks], "x", label='exp peaks')
 peak_positions = np.array(df_crop['MW'][peaks])
 print(len(peak_positions), peak_positions)
-
-
-print('find_peaks_cwt')
-width_idx = len(df_crop) / (max(df['MW']) - min(df['MW'])) * 6.8
-time1 = time.time()
-peaks_cwt = find_peaks_cwt(-df_crop['ODMR'], widths=np.full(8, width_idx), min_snr=1.2)
-print("Time cwt:", time.time() - time1)
-print(peaks_cwt)
-peak_positions_cwt = np.array(df_crop['MW'][peaks_cwt])
-print(len(peak_positions_cwt), peak_positions_cwt)
+#
+#
+# print('find_peaks_cwt')
+# width_idx = len(df_crop) / (max(df['MW']) - min(df['MW'])) * 6.8
+# time1 = time.time()
+# peaks_cwt = find_peaks_cwt(-df_crop['ODMR'], widths=np.full(8, width_idx), min_snr=1.2)
+# print("Time cwt:", time.time() - time1)
+# print(peaks_cwt)
+# peak_positions_cwt = np.array(df_crop['MW'][peaks_cwt])
+# print(len(peak_positions_cwt), peak_positions_cwt)
 # plt.plot(df_crop['MW'][peaks_cwt], df_crop['ODMR'][peaks_cwt], "x", label='exp peaks')
 
 # plt.show()
