@@ -19,7 +19,7 @@ def CartesianVector(r, theta, phi=0):
     return np.array([x, y, z])
 
 class NVcenter(object):
-    def __init__(self):
+    def __init__(self,D=2870, Mz=0):
         super(NVcenter, self).__init__()
         self.muB = 1.3996245042  # 1.401 #MHz/G
         self.g_el = 2.00231930436182
@@ -32,7 +32,7 @@ class NVcenter(object):
         self.Sz = np.array([[1, 0, 0],
                             [0, 0, 0],
                             [0, 0, -1]], dtype=complex)
-        self.setNVparameters()
+        self.setNVparameters(D=D, Mz=Mz)
         self.setMagnetic()
 
     def setNVparameters(self, D=2870, Mz=0):
@@ -124,6 +124,26 @@ class NVcenterSet(object):
             self.frequencies[m] = self.nvlist[m].frequencies
         return np.array(self.frequencies)
 
+    def four_frequencies(self, frequencyRange, B_lab):
+        B = np.linalg.norm(B_lab)
+        frequencies = np.empty((4, 2), dtype='object')
+        for m in range(4):
+            cos = np.dot(self.B_lab, self.rNV[m]) / (np.linalg.norm(self.B_lab) * np.linalg.norm(self.rNV[m]))
+            if cos >= 1.0:
+                cos = 1.0
+            thetaBnv = np.arccos(cos) * 180 / np.pi
+            phiBnv = 0
+            Bcarnv = CartesianVector(B, thetaBnv, phiBnv)
+            self.nvlist[m].setMagnetic(Bx=Bcarnv[0], By=Bcarnv[1], Bz=Bcarnv[2])
+            self.nvlist[m].calculatePeaks(frequencyRange)
+            # nv_fr_idx = (m+1) % 2
+            # frequencies[m] = nvlist[m].frequencies[nv_fr_idx]
+            frequencies[m] = self.nvlist[m].frequencies
+
+        frequencies1 = np.sort(np.array(frequencies).flatten())
+        self.four_frequencies_list = frequencies1[1::2]
+        return self.four_frequencies_list
+
     def sum_odmr(self, x, glor):
         # self.setMagnetic(B_lab)
         B = np.linalg.norm(self.B_lab)
@@ -137,25 +157,54 @@ class NVcenterSet(object):
             Bcarnv = CartesianVector(B, thetaBnv, phiBnv)
             # nvlist[m].setNVparameters(D=D)
             self.nvlist[m].setMagnetic(Bx=Bcarnv[0], By=Bcarnv[1], Bz=Bcarnv[2])
-            self.ODMR[m] = nvlist[m].nv_lorentz(x, glor)
+            self.ODMR[m] = self.nvlist[m].nv_lorentz(x, glor)
 
         sum_odmr = self.ODMR[0] + self.ODMR[1] + self.ODMR[2] + self.ODMR[3]
         sum_odmr /= max(sum_odmr)
 
         return sum_odmr
 
+    def calculateAinv(self, B0, Bsens=np.array([0, 0, 0]), omega_limits=np.array([2000, 3800]), dB=0.001):
+        '''
+        B0 - constant bias magnetic field
+        Bsens - small additional magnetic field (the one being measured)
+        dB - step size of derivatives
+        '''
+        B_total = B0 + Bsens
+
+        four_freqs = self.four_frequencies(omega_limits, B_total)
+        dfdB_array = np.empty((4, 3))
+        for row_idx, row in enumerate(np.eye(3)):
+            four_freqs_plusdB = self.four_frequencies(omega_limits, B_total + row * dB)
+            dfdB = (four_freqs_plusdB - four_freqs) / dB
+            dfdB_array[:, row_idx] = dfdB
+        #   print(row_idx, B_total + row * dB)
+        #   print(four_freqs_plusdB)
+        #   print(dfdB)
+        # print()
+        # print(dfdB_array)
+        self.dfdB_array_inv = np.linalg.pinv(dfdB_array)
+        return self.dfdB_array_inv
+
+    def deltaB_from_deltaFrequencies(A_inv, deltaFrequencies):
+        return np.dot(A_inv, deltaFrequencies.T)
+
 
 if __name__ == '__main__':
     D = 2851.26115
     Mz_array = np.array([7.32168327, 6.66104172, 9.68158138, 5.64605102])
+
+    # B_labx: 191.945068 + / - 0.06477634(0.03 %)(init=194.7307)
+    # B_laby: 100.386360 + / - 0.04340693(0.04 %)(init=94.97649)
+    # B_labz: 45.6577322 + / - 0.02524832(0.06 %)(init=38.2026)
+    B_lab = np.array([191.945068, 100.386360, 45.6577322])
+
     # NV center orientation in laboratory frame
     # (100)
-    rNV = 1. / math.sqrt(3.) * np.array([
-        [-1, -1, -1],
-        [1, 1, -1],
-        [1, -1, 1],
-        [-1, 1, 1]])
-    nvlist = np.array([NVcenter(), NVcenter(), NVcenter(), NVcenter()])
-    for i in range(4):
-        # nvlist[i].setNVparameters()
-        nvlist[i].setNVparameters(D=D, Mz=Mz_array[i])
+    nv_center_set = NVcenterSet(D=D, Mz_array=Mz_array)
+    nv_center_set.setMagnetic(B_lab=B_lab)
+    print(nv_center_set.B_lab)
+
+    A_inv = nv_center_set.calculateAinv(B_lab)
+
+    print(A_inv)
