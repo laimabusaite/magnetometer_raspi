@@ -5,7 +5,7 @@
 
 import signal               # module to allow us to interrupt program
 import sys                  # system module (to exit program)
-import Rpi.GPIO as GPIO     # RPi GPIO module
+import RPi.GPIO as GPIO     # RPi GPIO module
 import spidev               # SPI module
 import struct               # change bytes to integers
 
