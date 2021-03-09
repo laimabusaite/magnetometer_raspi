@@ -12,7 +12,8 @@ def detect_peaks(filename, debug=False):
     df_crop.index = np.arange(0, len(df_crop))
     min_distance = len(df_crop) / (max(df['MW']) - min(df['MW'])) * 50
     time0 = time.time()
-    peaks, properties = find_peaks(-df_crop['ODMR'], distance=min_distance, height=0.00035)
+    # peaks, properties = find_peaks(-df_crop['ODMR'], distance=min_distance, height=0.00035)
+    peaks, properties = find_peaks(-df_crop['ODMR'], distance=min_distance)
     time1 = time.time()
     peak_positions = np.array(df_crop['MW'][peaks])
 
@@ -29,6 +30,26 @@ def detect_peaks(filename, debug=False):
 
 
 if __name__ == '__main__':
-    filename = 'data/test_2920_650_16dBm_1024_ODMR.dat'
-    peaks = detect_peaks(filename)
+    # filename = 'data/test_2920_650_16dBm_1024_ODMR.dat'
+    # peaks = detect_peaks(filename)
+    # print(peaks)
+
+    filename_list = [
+        'data/test_windfreak_dev20.0_peak2415.0.dat',
+        'data/test_windfreak_dev20.0_peak2607.0.dat',
+        'data/test_windfreak_dev20.0_peak2805.0.dat',
+        'data/test_windfreak_dev20.0_peak2940.0.dat',
+        'data/test_windfreak_dev20.0_peak3113.0.dat',
+        'data/test_windfreak_dev20.0_peak3213.0.dat',
+        'data/test_windfreak_dev20.0_peak3323.0.dat',
+        'data/test_windfreak_dev20.0_peak3400.0.dat'
+    ]
+
+    peaks = []
+    for filename in filename_list:
+        peak = detect_peaks(filename)
+        peaks.append(peak)
+        # print(peak, peaks)
+
+    peaks = np.array(peaks).flatten()
     print(peaks)
