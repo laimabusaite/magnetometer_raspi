@@ -50,7 +50,7 @@ if __name__ == '__main__':
     pinINT=6
     pinMCK=18
     pinDRL=4
-    GPIO.setmode(GPIO.BOARD)
+    GPIO.setmode(GPIO.BCM)
     GPIO.setup(pinRST,GPIO.OUT)  # RST. Used for Filter Preset Enable (PRE)
     GPIO.setup(pinINT,GPIO.IN)   # INT. Busy Indicator (BSY)
     GPIO.setup(pinMCK,GPIO.OUT)  # PWM. Sampling Trigger (MCK)
@@ -79,9 +79,14 @@ if __name__ == '__main__':
     GPIO.output(pinDRL,GPIO.LOW)      # To start sending data, set DRL to 0.
 # We will select the Averaging filter (0111) with downsampling
 # factor DF32 (0101). 
-    send = [0x0b,0x57]            # Data word: 1011 0101 0111
-    spi.xfer(send)                # Send our word to LTC2500.
+    #send = [0x0b,0x57]            # Data word: 1011 0101 0111
+    send = [0xb57]
+    for i in range(1):
+        print(i)
+        time.sleep(0.1)
+        print(spi.xfer(send))                # Send our word to LTC2500.
 
+    GPIO.setup(pinDRL,GPIO.IN)
 # Now we need to change DRL back to read, so it can tell serve 
 # as Data Ready Indicator and tell us when data is ready. 
 
@@ -95,19 +100,19 @@ if __name__ == '__main__':
 # 32 bytes, so it's close. Might be safer to try slower 
 # ADC trigger or faster SPI. Need to experiment.
 
-    pwm = GPIO.PWM(pinMCK, 250000)    # Set PWM 250 kHz.
-    pwm.start(0.1)                # Start with duty cycle 10%.
+    pwm = GPIO.PWM(pinMCK, 100)    # Set PWM 250 kHz.
+    print(pwm.start(0.1))                # Start with duty cycle 10%.
 # I believe the minimum pulse width is 4 ns, so 10% duty 
 # cycle should be conservative.
 
 # Next we add an edge detection function to call our callback
 # function when DRL switches from 0 to 1.
-
+    print("get to here")
     #channel = 4                  # DRL pin for click shield 1
-    GPIO.setup(pinDRL,GPIO.IN)
+    #GPIO.setup(pinDRL,GPIO.IN)
     GPIO.add_event_detect(pinDRL, GPIO.RISING, callback=readADC7_callback)  # add rising edge detection on a channel
-
+    print("asd")
     signal.signal(signal.SIGINT, signal_handler)
     while True:
-        wait(100)
+        time.sleep(0.1)
     #signal.pause()
