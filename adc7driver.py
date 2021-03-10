@@ -107,5 +107,5 @@ if __name__ == '__main__':
     GPIO.setup(13,GPIO.IN)
     GPIO.add_event_detect(channel, GPIO.RISING, callback=readADC7_callback)  # add rising edge detection on a channel
 
-    signal.signal(signal.SIG_IGN, signal_handler)
+    signal.signal(signal.SIG_INT, signal_handler)
     signal.pause()
