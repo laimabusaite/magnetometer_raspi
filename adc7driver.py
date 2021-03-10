@@ -20,7 +20,7 @@ myDataFile=open(myDataFileName,"w")
 
 def signal_handler(sig, frame):
     global myDataFile
-    myDatafile.close()      # close the data file
+    myDataFile.close()      # close the data file
     GPIO.cleanup()          # do some cleanup
     spi.close()
     sys.exit(0)             # exit program
@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
     #channel = 4                  # DRL pin for click shield 1
     GPIO.setup(pinDRL,GPIO.IN)
-    GPIO.add_event_detect(channel, GPIO.RISING, callback=readADC7_callback)  # add rising edge detection on a channel
+    GPIO.add_event_detect(pinDRL, GPIO.RISING, callback=readADC7_callback)  # add rising edge detection on a channel
 
     signal.signal(signal.SIGINT, signal_handler)
-    signal.pause()
+    #signal.pause()
