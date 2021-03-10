@@ -51,7 +51,7 @@ if __name__ == '__main__':
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(pinRST,GPIO.OUT)  # RST. Used for Filter Preset Enable (PRE)
     GPIO.setup(pinINT,GPIO.IN)   # INT. Busy Indicator (BSY)
-    GPIO.setup(pinPWM,GPIO.OUT)  # PWM. Sampling Trigger (MCK)
+    GPIO.setup(pinMCK,GPIO.OUT)  # PWM. Sampling Trigger (MCK)
 
 # We leave pin GPIO13 as is for now. We need to write to it, in order
 # to load a new control word into the LTC2500-32 chip, but we need 
@@ -69,10 +69,6 @@ if __name__ == '__main__':
 # number/chip select os CS(CS0 or CS1). RPI supports two SPI
 # devices. CS0 controls the shield connectors. CS1 controls the
 # additional 12-bit ADC on the click shield. 
-
-
-
-
 
 
 # Now we will send a control word. 
@@ -97,7 +93,7 @@ if __name__ == '__main__':
 # 32 bytes, so it's close. Might be safer to try slower 
 # ADC trigger or faster SPI. Need to experiment.
 
-    pwm = GPIO.PWM(pinPWM, 250000)    # Set PWM 250 kHz.
+    pwm = GPIO.PWM(pinMCK, 250000)    # Set PWM 250 kHz.
     pwm.start(0.1)                # Start with duty cycle 10%.
 # I believe the minimum pulse width is 4 ns, so 10% duty 
 # cycle should be conservative.
