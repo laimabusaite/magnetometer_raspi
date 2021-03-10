@@ -44,11 +44,14 @@ def readADC7_callback(channel):
 if __name__ == '__main__':
 # First, we will configure the GPIO pins for working with the
 # ADC 7 Click installed on position 1 of the Click Shield.
-
+    pinRST=5
+    pinINT=6
+    pinMCK=18
+    pinDRL=4
     GPIO.setmode(GPIO.BCM)
-    GPIO.setup(5,GPIO.OUT)  # RST. Used for Filter Preset Enable (PRE)
-    GPIO.setup(6,GPIO.IN)   # INT. Busy Indicator (BSY)
-    GPIO.setup(18,GPIO.OUT) # PTM. Sampling Trigger (MCK)
+    GPIO.setup(pinRST,GPIO.OUT)  # RST. Used for Filter Preset Enable (PRE)
+    GPIO.setup(pinINT,GPIO.IN)   # INT. Busy Indicator (BSY)
+    GPIO.setup(pinPWM,GPIO.OUT)  # PWM. Sampling Trigger (MCK)
 
 # We leave pin GPIO13 as is for now. We need to write to it, in order
 # to load a new control word into the LTC2500-32 chip, but we need 
@@ -73,9 +76,9 @@ if __name__ == '__main__':
 
 
 # Now we will send a control word. 
-    GPIO.setup(4,GPIO.OUT)       # We DRL to start communication
-    GPIO.output(18,GPIO.LOW)      # The MCK should be 0.
-    GPIO.output(4,GPIO.LOW)      # To start sending data, set DRL to 0.
+    GPIO.setup(pinDRL,GPIO.OUT)       # We DRL to start communication
+    GPIO.output(pinMCK,GPIO.LOW)      # The MCK should be 0.
+    GPIO.output(pinDRL,GPIO.LOW)      # To start sending data, set DRL to 0.
 # We will select the Averaging filter (0111) with downsampling
 # factor DF32 (0101). 
     send = [0x0b,0x57]            # Data word: 1011 0101 0111
@@ -94,7 +97,7 @@ if __name__ == '__main__':
 # 32 bytes, so it's close. Might be safer to try slower 
 # ADC trigger or faster SPI. Need to experiment.
 
-    pwm = GPIO.PWM(18, 250000)    # Set PWM 250 kHz.
+    pwm = GPIO.PWM(pinPWM, 250000)    # Set PWM 250 kHz.
     pwm.start(0.1)                # Start with duty cycle 10%.
 # I believe the minimum pulse width is 4 ns, so 10% duty 
 # cycle should be conservative.
@@ -102,8 +105,8 @@ if __name__ == '__main__':
 # Next we add an edge detection function to call our callback
 # function when DRL switches from 0 to 1.
 
-    channel = 13                  # DRL pin for click shield 1
-    GPIO.setup(13,GPIO.IN)
+    #channel = 4                  # DRL pin for click shield 1
+    GPIO.setup(pinDRL,GPIO.IN)
     GPIO.add_event_detect(channel, GPIO.RISING, callback=readADC7_callback)  # add rising edge detection on a channel
 
     signal.signal(signal.SIGINT, signal_handler)
