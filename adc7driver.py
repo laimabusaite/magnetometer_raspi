@@ -45,7 +45,7 @@ if __name__ == '__main__':
 # First, we will configure the GPIO pins for working with the
 # ADC 7 Click installed on position 1 of the Click Shield.
 
-    GPIO.setmode(GPIO.BOARD)
+    GPIO.setmode(GPIO.BCM)
     GPIO.setup(5,GPIO.OUT)  # RST. Used for Filter Preset Enable (PRE)
     GPIO.setup(6,GPIO.IN)   # INT. Busy Indicator (BSY)
     GPIO.setup(18,GPIO.OUT) # PTM. Sampling Trigger (MCK)
@@ -56,10 +56,11 @@ if __name__ == '__main__':
 
 # Next, we configure the SPI interface.
 
-    dev1 = spidev.SpiDev()        # Create instance of list
-    spi.max_speed = 10000000      # SPI clock speed 10 MHz
+    spi = spidev.SpiDev()        # Create instance of list
+    spi.open(0,0)
+    spi.max_speed_hz = 1000000      # SPI clock speed 10 MHz
     spi.lsbfirst = False          # Send MSB as first bit
-    spi.open(0,0)                 # Open Connection bus 0, device 0
+    #spi.open(0,0)                 # Open Connection bus 0, device 0
 # The first 0 is the bus number. We have only one SPI bus on the 
 # RPi, so it must always be 0. The second parameter is the device
 # number/chip select os CS(CS0 or CS1). RPI supports two SPI
@@ -70,7 +71,7 @@ if __name__ == '__main__':
 # the DRL sees a rising edge. 
 
 
-    
+
 
 # Now we will send a control word. 
     GPIO.setup(13,GPIO.OUT)       # We DRL to start communication
@@ -92,7 +93,7 @@ if __name__ == '__main__':
 # For 250 Khz, that time is 4 us. 
 # With an SPI clock at 10 MHz, it takes 32*100ns=3.2us to send
 # 32 bytes, so it's close. Might be safer to try slower 
-# ADC trigger or faster SPI. Need to experiment.  
+# ADC trigger or faster SPI. Need to experiment.
 
     pwm = GPIO.PWM(18, 250000)    # Set PWM 250 kHz.
     pwm.start(0.1)                # Start with duty cycle 10%.
@@ -103,7 +104,8 @@ if __name__ == '__main__':
 # function when DRL switches from 0 to 1.
 
     channel = 13                  # DRL pin for click shield 1
+    GPIO.setup(13,GPIO.IN)
     GPIO.add_event_detect(channel, GPIO.RISING, callback=readADC7_callback)  # add rising edge detection on a channel
 
-    signal.signal(signal.SIGING, signal_handler)
+    signal.signal(signal.SIG_IGN, signal_handler)
     signal.pause()
