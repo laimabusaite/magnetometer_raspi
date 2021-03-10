@@ -8,6 +8,7 @@ import sys                  # system module (to exit program)
 import RPi.GPIO as GPIO     # RPi GPIO module
 import spidev               # SPI module
 import struct               # change bytes to integers
+import time
 
 # We need to put our data somewhere. We will be lazy for now
 # and make a global variable for the file handle.
