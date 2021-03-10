@@ -80,7 +80,7 @@ if __name__ == '__main__':
 # We will select the Averaging filter (0111) with downsampling
 # factor DF32 (0101). 
     send = [0x0b,0x57]            # Data word: 1011 0101 0111
-    spi.xfer(send)                # Send our word to LTC2500.
+    spi.xfer(send)         # Send our word to LTC2500.
 
 # Now we need to change DRL back to read, so it can tell serve 
 # as Data Ready Indicator and tell us when data is ready. 
