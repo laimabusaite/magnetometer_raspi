@@ -50,7 +50,7 @@ if __name__ == '__main__':
     pinINT=6
     pinMCK=18
     pinDRL=4
-    GPIO.setmode(GPIO.BOARD)
+    GPIO.setmode(GPIO.BCM)
     GPIO.setup(pinRST,GPIO.OUT)  # RST. Used for Filter Preset Enable (PRE)
     GPIO.setup(pinINT,GPIO.IN)   # INT. Busy Indicator (BSY)
     GPIO.setup(pinMCK,GPIO.OUT)  # PWM. Sampling Trigger (MCK)
