@@ -67,16 +67,15 @@ if __name__ == '__main__':
 # devices. CS0 controls the shield connectors. CS1 controls the
 # additional 12-bit ADC on the click shield. 
 
-# Now we define a callback function for reading data when
-# the DRL sees a rising edge. 
+
 
 
 
 
 # Now we will send a control word. 
-    GPIO.setup(13,GPIO.OUT)       # We DRL to start communication
+    GPIO.setup(4,GPIO.OUT)       # We DRL to start communication
     GPIO.output(18,GPIO.LOW)      # The MCK should be 0.
-    GPIO.output(13,GPIO.LOW)      # To start sending data, set DRL to 0.
+    GPIO.output(4,GPIO.LOW)      # To start sending data, set DRL to 0.
 # We will select the Averaging filter (0111) with downsampling
 # factor DF32 (0101). 
     send = [0x0b,0x57]            # Data word: 1011 0101 0111
