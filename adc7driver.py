@@ -37,7 +37,7 @@ def readADC7_callback(channel):
     global myDataFile
     data=spi.readbytes(4)
     dataword=struct.unpack("<I", bytearray(data))
-    myDataFile.write('d\n',dataword)
+    myDataFile.write('%d\n',dataword)
 
 # Now we are ready to start the main program.
 
