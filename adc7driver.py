@@ -81,10 +81,7 @@ if __name__ == '__main__':
 # factor DF32 (0101). 
     #send = [0x0b,0x57]            # Data word: 1011 0101 0111
     send = [0xb57]
-    for i in range(1):
-        print(i)
-        time.sleep(0.1)
-        print(spi.xfer(send))                # Send our word to LTC2500.
+    print(spi.xfer(send))                # Send our word to LTC2500.
 
     GPIO.setup(pinDRL,GPIO.IN)
 # Now we need to change DRL back to read, so it can tell serve 
@@ -114,5 +111,7 @@ if __name__ == '__main__':
     print("asd")
     signal.signal(signal.SIGINT, signal_handler)
     while True:
-        time.sleep(0.1)
+        #time.sleep(0.1)
+        rcvd = spi.xfer(send)
+        print("Sent word, received %d",rcvd)
     #signal.pause()
