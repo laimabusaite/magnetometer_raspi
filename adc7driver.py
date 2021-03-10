@@ -38,6 +38,7 @@ def readADC7_callback(channel):
     data=spi.readbytes(4)
     dataword=struct.unpack("<I", bytearray(data))
     myDataFile.write('%d\n',dataword)
+    print('Writing data: %d\n',dataword)
 
 # Now we are ready to start the main program.
 
@@ -48,7 +49,7 @@ if __name__ == '__main__':
     pinINT=6
     pinMCK=18
     pinDRL=4
-    GPIO.setmode(GPIO.BCM)
+    GPIO.setmode(GPIO.BOARD)
     GPIO.setup(pinRST,GPIO.OUT)  # RST. Used for Filter Preset Enable (PRE)
     GPIO.setup(pinINT,GPIO.IN)   # INT. Busy Indicator (BSY)
     GPIO.setup(pinMCK,GPIO.OUT)  # PWM. Sampling Trigger (MCK)
@@ -106,4 +107,6 @@ if __name__ == '__main__':
     GPIO.add_event_detect(pinDRL, GPIO.RISING, callback=readADC7_callback)  # add rising edge detection on a channel
 
     signal.signal(signal.SIGINT, signal_handler)
+    while True:
+        wait(100)
     #signal.pause()
