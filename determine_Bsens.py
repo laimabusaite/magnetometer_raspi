@@ -1,5 +1,6 @@
 import NVcenter as nv
 import numpy as np
+from detect_peaks import detect_peaks
 
 if __name__ == '__main__':
   D = 2851.26115
@@ -16,8 +17,24 @@ if __name__ == '__main__':
   nv_center_set.setMagnetic(B_lab=B_lab)
   print(nv_center_set.B_lab)
 
-  A_inv = nv_center_set.calculateAinv(B_lab)
+  frequencies0 = nv_center_set.four_frequencies(np.array([2000,3500]), nv_center_set.B_lab)
+
+  print(frequencies0)
+
+  A_inv = nv_center_set.calculateAinv(nv_center_set.B_lab)
 
   print(A_inv)
+
+  filename = 'data/test_2920_650_16dBm_1024_ODMR.dat'
+  peaks = detect_peaks(filename)
+  print(peaks)
+
+  delta_frequencies = frequencies0 - peaks[1::2]
+  print(delta_frequencies)
+
+  Bsens = nv_center_set.deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
+
+  print(Bsens)
+
 
 
