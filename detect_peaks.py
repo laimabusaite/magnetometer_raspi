@@ -25,7 +25,7 @@ def detect_peaks(filename, debug=False):
         plt.plot(df_crop['MW'][peaks], df_crop['ODMR'][peaks], "x", label='exp peaks')
         plt.show()
 
-    return peak_positions
+    return np.array(peak_positions)
 
 
 if __name__ == '__main__':

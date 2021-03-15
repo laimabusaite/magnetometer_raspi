@@ -90,7 +90,7 @@ duty_cycle = 100*frequency*pulse_time
 pwm = GPIO.PWM(pinMCK, frequency)
 pwm.start(duty_cycle)
 
-GPIO.add_event_detect(pinDRL, GPIO.BOTH, callback=read_data)
+GPIO.add_event_detect(pinDRL, GPIO.RISING, callback=read_data)
 #GPIO.add_event_detect(pinBSY, GPIO.FALLING, callback=busy_pin)
 
 signal.signal(signal.SIGINT, signal_handler)

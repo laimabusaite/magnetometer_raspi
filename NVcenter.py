@@ -1,6 +1,9 @@
 import numpy as np
 import math
 
+# import scipy
+
+
 def lor(x, x0, a, g):
     return a * g**2 / ((x-x0)**2 + g**2)
 
@@ -128,7 +131,7 @@ class NVcenterSet(object):
         B = np.linalg.norm(B_lab)
         frequencies = np.empty((4, 2), dtype='object')
         for m in range(4):
-            cos = np.dot(self.B_lab, self.rNV[m]) / (np.linalg.norm(self.B_lab) * np.linalg.norm(self.rNV[m]))
+            cos = np.dot(B_lab, self.rNV[m]) / (np.linalg.norm(B_lab) * np.linalg.norm(self.rNV[m]))
             if cos >= 1.0:
                 cos = 1.0
             thetaBnv = np.arccos(cos) * 180 / np.pi
@@ -173,9 +176,11 @@ class NVcenterSet(object):
         B_total = B0 + Bsens
 
         four_freqs = self.four_frequencies(omega_limits, B_total)
+        print(four_freqs)
         dfdB_array = np.empty((4, 3))
         for row_idx, row in enumerate(np.eye(3)):
             four_freqs_plusdB = self.four_frequencies(omega_limits, B_total + row * dB)
+            print(four_freqs_plusdB)
             dfdB = (four_freqs_plusdB - four_freqs) / dB
             dfdB_array[:, row_idx] = dfdB
         #   print(row_idx, B_total + row * dB)
@@ -183,10 +188,19 @@ class NVcenterSet(object):
         #   print(dfdB)
         # print()
         # print(dfdB_array)
+        # dfdB_array = np.array([[-0.69754672, -1.42758978, 2.59084973],
+        #        [-0.14994793, 1.88371234, 1.55602508],
+        #        [2.7324046, -0.3706681, 1.54748226],
+        #        [2.24115561, 1.52350746, 1.08976401]])
+        # print(dfdB_array)
+        # print(np.linalg.pinv(dfdB_array))
         self.dfdB_array_inv = np.linalg.pinv(dfdB_array)
+        # print(self.dfdB_array_inv)
+        # print(np.dot(self.dfdB_array_inv, dfdB_array))
+        # print(np.dot(dfdB_array, self.dfdB_array_inv))
         return self.dfdB_array_inv
 
-    def deltaB_from_deltaFrequencies(A_inv, deltaFrequencies):
+    def deltaB_from_deltaFrequencies(self, A_inv, deltaFrequencies):
         return np.dot(A_inv, deltaFrequencies.T)
 
 
