@@ -127,11 +127,11 @@ class NVcenterSet(object):
             self.frequencies[m] = self.nvlist[m].frequencies
         return np.array(self.frequencies)
 
-    def four_frequencies(self, frequencyRange, B_lab):
-        B = np.linalg.norm(B_lab)
+    def four_frequencies(self, frequencyRange, B_total):
+        B = np.linalg.norm(B_total)
         frequencies = np.empty((4, 2), dtype='object')
         for m in range(4):
-            cos = np.dot(B_lab, self.rNV[m]) / (np.linalg.norm(B_lab) * np.linalg.norm(self.rNV[m]))
+            cos = np.dot(B_total, self.rNV[m]) / (np.linalg.norm(B_total) * np.linalg.norm(self.rNV[m]))
             if cos >= 1.0:
                 cos = 1.0
             thetaBnv = np.arccos(cos) * 180 / np.pi
