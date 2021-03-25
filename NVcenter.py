@@ -1,25 +1,7 @@
 import numpy as np
 import math
+from utilities import *
 
-# import scipy
-
-
-def lor(x, x0, a, g):
-    return a * g**2 / ((x-x0)**2 + g**2)
-
-def lor_curve(omega, omega_tr, ampl_tr, g):
-    res = np.zeros(len(omega))
-    for i in range(len(omega_tr)):
-        if abs(ampl_tr[i]) > 0:
-            res += abs(lor(omega, omega_tr[i], ampl_tr[i], g))
-    return res
-
-def CartesianVector(r, theta, phi=0):
-    """ Return vector in Cartesian by 'deg' degrees """
-    x = r * math.sin(theta * np.pi / 180.0) * math.cos(phi * np.pi / 180.0)
-    y = r * math.sin(theta * np.pi / 180.0) * math.sin(phi * np.pi / 180.0)
-    z = r * math.cos(theta * np.pi / 180.0)
-    return np.array([x, y, z])
 
 class NVcenter(object):
     def __init__(self,D=2870, Mz=0):
@@ -64,7 +46,6 @@ class NVcenter(object):
         frequencies = np.tile(self.eVals, self.dim).reshape(self.dim, -1) - np.tile(self.eVals, self.dim).reshape(
             self.dim, -1).transpose()
         frequencies = frequencies.flatten()
-        # print(frequencies)
         amplitudes = self.MWham.flatten()
 
         condlist = (frequencies > np.array(omega)[0]) & (frequencies <= np.array(omega)[-1]) & (amplitudes > 0)
@@ -72,32 +53,36 @@ class NVcenter(object):
         self.amplitudes = np.extract(condlist, amplitudes)
 
     def nv_lorentz(self, omega, g_lor):
-        # self.calculateHamiltonian()
-        # self.calculateInteraction()
         self.calculatePeaks(omega)
-
         res = lor_curve(omega, self.frequencies, self.amplitudes, g_lor)
         try:
             self.res = res / max(res)
             return self.res
         except Exception as e:
-            # print(len(omega), len(res))
+            print(res)
+            print(e)
+
+    def nv_pseudo_voigt(self, omega, g_lor, asym_coef, fraction):
+        self.calculatePeaks(omega)
+        res = asymetrical_voigt_curve(omega, self.frequencies, self.amplitudes, g_lor, asym_coef, fraction)
+        try:
+            self.res = res / max(res)
+            return self.res
+        except Exception as e:
             print(res)
             print(e)
 
 
 class NVcenterSet(object):
     def __init__(self, D=2870, Mz_array=np.array([0, 0, 0, 0])):
-        super(NVcenterSet, self).__init__()
+        # super(NVcenterSet, self).__init__()
         self.rNV = 1. / math.sqrt(3.) * np.array([
             [-1, -1, -1],
             [1, 1, -1],
             [1, -1, 1],
             [-1, 1, 1]])
-
         self.D = D
         self.Mz_array = Mz_array
-
         self.nvlist = np.array([NVcenter(D, Mz_array[0]),
                                 NVcenter(D, Mz_array[1]),
                                 NVcenter(D, Mz_array[2]),
@@ -174,34 +159,19 @@ class NVcenterSet(object):
         dB - step size of derivatives
         '''
         B_total = B0 + Bsens
-
         four_freqs = self.four_frequencies(omega_limits, B_total)
-        print(four_freqs)
+        # print(four_freqs)
         dfdB_array = np.empty((4, 3))
         for row_idx, row in enumerate(np.eye(3)):
             four_freqs_plusdB = self.four_frequencies(omega_limits, B_total + row * dB)
-            print(four_freqs_plusdB)
+            # print(four_freqs_plusdB)
             dfdB = (four_freqs_plusdB - four_freqs) / dB
             dfdB_array[:, row_idx] = dfdB
-        #   print(row_idx, B_total + row * dB)
-        #   print(four_freqs_plusdB)
-        #   print(dfdB)
-        # print()
-        # print(dfdB_array)
-        # dfdB_array = np.array([[-0.69754672, -1.42758978, 2.59084973],
-        #        [-0.14994793, 1.88371234, 1.55602508],
-        #        [2.7324046, -0.3706681, 1.54748226],
-        #        [2.24115561, 1.52350746, 1.08976401]])
-        # print(dfdB_array)
-        # print(np.linalg.pinv(dfdB_array))
         self.dfdB_array_inv = np.linalg.pinv(dfdB_array)
-        # print(self.dfdB_array_inv)
-        # print(np.dot(self.dfdB_array_inv, dfdB_array))
-        # print(np.dot(dfdB_array, self.dfdB_array_inv))
         return self.dfdB_array_inv
 
-    def deltaB_from_deltaFrequencies(self, A_inv, deltaFrequencies):
-        return np.dot(A_inv, deltaFrequencies.T)
+    # def deltaB_from_deltaFrequencies(self, A_inv, deltaFrequencies):
+    #     return np.dot(A_inv, deltaFrequencies.T)
 
 
 if __name__ == '__main__':
@@ -222,3 +192,14 @@ if __name__ == '__main__':
     A_inv = nv_center_set.calculateAinv(B_lab)
 
     print(A_inv)
+
+    omega = np.linspace(2000, 3800, 1000)
+    g_lor = 10
+    odmr_signal = nv_center_set.sum_odmr(omega, g_lor)
+    noise_std = 0.05
+    noisy_odmr_signal = add_noise(odmr_signal, noise_std)
+    # print(odmr_signal)
+    import matplotlib.pyplot as plt
+    plt.plot(omega, odmr_signal)
+    plt.plot(omega, noisy_odmr_signal)
+    plt.show()
