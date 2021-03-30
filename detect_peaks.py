@@ -27,7 +27,8 @@ def detect_peaks(x_data, y_data, debug=False):
     min_distance = len(df) / (max(df['MW']) - min(df['MW'])) * 50
     height = (max(-df['ODMR']) - min(-df['ODMR'])) * 0.1
     time0 = time.time()
-    peaks, properties = find_peaks(-df['ODMR'], distance=min_distance, height=height)
+    # peaks, properties = find_peaks(-df['ODMR'], distance=min_distance, height=height)
+    peaks, properties = find_peaks(-df['ODMR'], distance=min_distance)
     time1 = time.time()
     peak_positions = np.array(df['MW'][peaks])
     peak_amplitudes = np.array(df['ODMR'][peaks])

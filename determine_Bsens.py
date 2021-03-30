@@ -2,6 +2,7 @@ import NVcenter as nv
 import numpy as np
 from detect_peaks import *
 from utilities import *
+import glob
 
 if __name__ == '__main__':
     # B_labx: 191.922866 + / - 0.03154444(0.02 %)(init=191.9451)
@@ -34,13 +35,20 @@ if __name__ == '__main__':
 
     print(A_inv)
 
-    filename = 'data/test_2920_650_16dBm_1024_ODMR.dat'
-    dataframe = import_data(filename)
+    # filename = 'data/test_2920_650_16dBm_1024_ODMR.dat'
+    filenames = sorted(glob.glob("test_data/*.dat"))
+    peaks_list = []
+    for filename in filenames:
+        dataframe = import_data(filename)
+        # print(dataframe)
+        peaks, amplitudes = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=False)
+        print(peaks)
+        peaks_list.append(peaks)
 
-    peaks, amplitudes = detect_peaks(dataframe['MW'], dataframe['ODMR'])
-    print(peaks)
+    peaks_list = np.array(peaks_list).flatten()
+    print(peaks_list)
 
-    delta_frequencies = frequencies0 - peaks[1::2]
+    delta_frequencies = frequencies0 - peaks_list #peaks[1::2]
     print(delta_frequencies)
 
     Bsens = deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
