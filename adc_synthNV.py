@@ -12,6 +12,29 @@ import signal
 import sys
 import RPi.GPIO as GPIO
 
+import NVcenter as nv
+from detect_peaks import *
+from utilities import *
+import glob
+
+D = 2866.66847 #2851.26115
+Mz_array = np.array([-8.23252697, -8.59166628, -6.41586921, -9.94692311]) #np.array([7.32168327, 6.66104172, 9.68158138, 5.64605102])
+B_lab = np.array([191.922866, 100.320155, 45.4196647]) #np.array([191.945068, 100.386360, 45.6577322])
+
+# NV center orientation in laboratory frame
+# (100)
+nv_center_set = nv.NVcenterSet(D=D, Mz_array=Mz_array)
+nv_center_set.setMagnetic(B_lab=B_lab)
+# print(nv_center_set.B_lab)
+
+frequencies0 = nv_center_set.four_frequencies(np.array([2000, 3500]), nv_center_set.B_lab)
+
+# print(frequencies0)
+
+A_inv = nv_center_set.calculateAinv(nv_center_set.B_lab)
+
+# print(A_inv)
+
 spi = spidev.SpiDev()
 spi.open(1,2)
 
@@ -184,7 +207,26 @@ for i in range(100):
     #scan_peak(2905,600,0.25,8,4)
 
     #os.system("python3 plot1.py")
-    os.system("python3 determine_Bsens.py")
+    filenames = sorted(glob.glob("test_data/*.dat"))
+    peaks_list = []
+    #print()
+    for filename in filenames:
+        #print(filename)
+        dataframe = import_data(filename)
+        # print(dataframe)
+        peaks, amplitudes = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=False)
+        #print(peaks)
+        peaks_list.append(peaks)
+
+    peaks_list = np.array(peaks_list).flatten()
+    # print(peaks_list)
+
+    delta_frequencies = frequencies0 - peaks_list #peaks[1::2]
+    #print("\ndelta F =",delta_frequencies)
+
+    Bsens = deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
+
+    print("\nB =",Bsens)
     #time.sleep(2)
 
 
