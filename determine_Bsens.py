@@ -25,32 +25,34 @@ if __name__ == '__main__':
     # (100)
     nv_center_set = nv.NVcenterSet(D=D, Mz_array=Mz_array)
     nv_center_set.setMagnetic(B_lab=B_lab)
-    print(nv_center_set.B_lab)
+    # print(nv_center_set.B_lab)
 
     frequencies0 = nv_center_set.four_frequencies(np.array([2000, 3500]), nv_center_set.B_lab)
 
-    print(frequencies0)
+    # print(frequencies0)
 
     A_inv = nv_center_set.calculateAinv(nv_center_set.B_lab)
 
-    print(A_inv)
+    # print(A_inv)
 
     # filename = 'data/test_2920_650_16dBm_1024_ODMR.dat'
     filenames = sorted(glob.glob("test_data/*.dat"))
     peaks_list = []
+    #print()
     for filename in filenames:
+        #print(filename)
         dataframe = import_data(filename)
         # print(dataframe)
         peaks, amplitudes = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=False)
-        print(peaks)
+        #print(peaks)
         peaks_list.append(peaks)
 
     peaks_list = np.array(peaks_list).flatten()
-    print(peaks_list)
+    # print(peaks_list)
 
     delta_frequencies = frequencies0 - peaks_list #peaks[1::2]
-    print(delta_frequencies)
+    #print("\ndelta F =",delta_frequencies)
 
     Bsens = deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
 
-    print(Bsens)
+    print("\nB =",Bsens)
