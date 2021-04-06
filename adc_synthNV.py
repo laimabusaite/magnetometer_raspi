@@ -17,9 +17,13 @@ from detect_peaks import *
 from utilities import *
 import glob
 
-D = 2866.66847 #2851.26115
-Mz_array = np.array([-8.23252697, -8.59166628, -6.41586921, -9.94692311]) #np.array([7.32168327, 6.66104172, 9.68158138, 5.64605102])
-B_lab = np.array([191.922866, 100.320155, 45.4196647]) #np.array([191.945068, 100.386360, 45.6577322])
+#D = 2866.66847 #2851.26115
+#Mz_array = np.array([-8.23252697, -8.59166628, -6.41586921, -9.94692311]) #np.array([7.32168327, 6.66104172, 9.68158138, 5.64605102])
+#B_lab = np.array([191.922866, 100.320155, 45.4196647]) #np.array([191.945068, 100.386360, 45.6577322])
+
+D = 2867.61273
+Mz_array = np.array([1.85907453, 2.16259814, 1.66604227, 2.04334145]) #np.array([7.32168327, 6.66104172, 9.68158138, 5.64605102])
+B_lab = np.array([169.121512, 87.7180839, 40.3986877]) #np.array([191.945068, 100.386360, 45.6577322])
 
 # NV center orientation in laboratory frame
 # (100)
@@ -28,11 +32,9 @@ nv_center_set.setMagnetic(B_lab=B_lab)
 # print(nv_center_set.B_lab)
 
 frequencies0 = nv_center_set.four_frequencies(np.array([2000, 3500]), nv_center_set.B_lab)
-
 # print(frequencies0)
 
 A_inv = nv_center_set.calculateAinv(nv_center_set.B_lab)
-
 # print(A_inv)
 
 spi = spidev.SpiDev()
@@ -187,14 +189,13 @@ def scan_peak(f0, dev, step_size, avg1, avg2):
     return frequency_chan[peaks]
 
 
-
 dev0=20
-step=0.2
+step=0.4
 a1=4
 a2=1
 t0=time.time()
 
-for i in range(100):
+for i in range(10):
     #print(i)
     #scan_peak(2417,dev0,step,a1,a2)
     scan_peak(2611,dev0,step,a1,a2)
@@ -204,7 +205,7 @@ for i in range(100):
     scan_peak(3204,dev0,step,a1,a2)
     #scan_peak(3323,dev0,step,a1,a2)
     scan_peak(3389,dev0,step,a1,a2)
-    #scan_peak(2905,600,0.25,8,4)
+    #scan_peak(2905,600,0.2,32,4)
 
     #os.system("python3 plot1.py")
     filenames = sorted(glob.glob("test_data/*.dat"))
@@ -225,13 +226,12 @@ for i in range(100):
     #print("\ndelta F =",delta_frequencies)
 
     Bsens = deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
-
-    print("\nB =",Bsens)
+    print("\nBxyz = ({0:.2f}, {1:.2f}, {2:.2f}) G\t\t|B| = {3:.2f} G".format(Bsens[0],Bsens[1],Bsens[2],np.sqrt(Bsens[0]*Bsens[0]+Bsens[1]*Bsens[1]+Bsens[2]*Bsens[2])))
     #time.sleep(2)
 
 
 t=time.time()
-print("Total time {0:.1f} s".format(t-t0))
+print("\nTotal time {0:.1f} s".format(t-t0))
 
 print("\nSHUT DOWN")
 
