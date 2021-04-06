@@ -6,9 +6,9 @@ from lmfit.models import Model
 from scipy import interpolate
 from scipy.signal import find_peaks, savgol_filter
 from utilities import *
+import json
 
 from scipy.special import wofz
-
 
 
 class NVsetForFitting(nv.NVcenterSet):
@@ -37,25 +37,62 @@ class NVsetForFitting(nv.NVcenterSet):
         return sum_odmr
 
     def sum_odmr(self, x, B_labx, B_laby, B_labz, glor, D, Mz1, Mz2, Mz3, Mz4):
-      B_lab = np.array([B_labx, B_laby, B_labz])
-      Mz_array = np.array([Mz1, Mz2, Mz3, Mz4])
-      B = np.linalg.norm(B_lab)
-      ODMR = np.empty(4, dtype='object')
-      for m in range(4):
-          cos = np.dot(B_lab, self.rNV[m]) / (np.linalg.norm(B_lab) * np.linalg.norm(self.rNV[m]))
-          if cos >= 1.0:
-              cos = 1.0
-          thetaBnv = np.arccos(cos)*180/np.pi
-          phiBnv = 0
-          Bcarnv = nv.CartesianVector(B, thetaBnv, phiBnv)
-          self.nvlist[m].setNVparameters(D=D, Mz=Mz_array[m])
-          self.nvlist[m].setMagnetic(Bx = Bcarnv[0], By = Bcarnv[1], Bz = Bcarnv[2])
-          ODMR[m] = self.nvlist[m].nv_lorentz(x, glor)
+        B_lab = np.array([B_labx, B_laby, B_labz])
+        Mz_array = np.array([Mz1, Mz2, Mz3, Mz4])
+        B = np.linalg.norm(B_lab)
+        ODMR = np.empty(4, dtype='object')
+        for m in range(4):
+            cos = np.dot(B_lab, self.rNV[m]) / (np.linalg.norm(B_lab) * np.linalg.norm(self.rNV[m]))
+            if cos >= 1.0:
+                cos = 1.0
+            thetaBnv = np.arccos(cos) * 180 / np.pi
+            phiBnv = 0
+            Bcarnv = nv.CartesianVector(B, thetaBnv, phiBnv)
+            self.nvlist[m].setNVparameters(D=D, Mz=Mz_array[m])
+            self.nvlist[m].setMagnetic(Bx=Bcarnv[0], By=Bcarnv[1], Bz=Bcarnv[2])
+            ODMR[m] = self.nvlist[m].nv_lorentz(x, glor)
 
-      sum_odmr = ODMR[0]+ODMR[1]+ODMR[2]+ODMR[3]
-      sum_odmr /= max(sum_odmr)
+        sum_odmr = ODMR[0] + ODMR[1] + ODMR[2] + ODMR[3]
+        sum_odmr /= max(sum_odmr)
 
-      return sum_odmr
+        return sum_odmr
+
+    def fit_odmr_lorentz(self, x, y, init_params, varyB=True, varyGlor=True, varyD=True,
+                         varyMz=False):
+
+        summodel = Model(self.sum_odmr)
+        params = summodel.make_params(B_labx=init_params['B_labx'], B_laby=init_params['B_laby'], B_labz=init_params['B_labz'], glor=init_params['glor'],
+                                      D=init_params['D'],
+                                      Mz1=init_params['Mz1'], Mz2=init_params['Mz2'], Mz3=init_params['Mz3'],
+                                      Mz4=init_params['Mz4'])
+        params.update(summodel.make_params())
+        params['B_labx'].set(init_params['B_labx'], min=0, max=400, vary=varyB)
+        params['B_laby'].set(init_params['B_laby'], min=0, max=400, vary=varyB)
+        params['B_labz'].set(init_params['B_labz'], min=0, max=400, vary=varyB)
+        params['glor'].set(init_params['glor'], min=0, max=50, vary=varyGlor)
+        params['D'].set(init_params['D'], min=2750, max=2900, vary=varyD)
+        params['Mz1'].set(init_params['Mz1'], min=-10, max=10, vary=varyMz)
+        params['Mz2'].set(init_params['Mz2'], min=-10, max=10, vary=varyMz)
+        params['Mz3'].set(init_params['Mz3'], min=-10, max=10, vary=varyMz)
+        params['Mz4'].set(init_params['Mz4'], min=-10, max=10, vary=varyMz)
+
+        self.fitResultLorentz = summodel.fit(y, params, x=x)
+
+        self.save_parameters(self.fitResultLorentz.best_values, "ODMR_fit_parameters.json")
+
+    def save_parameters(self, dictionary_data, filename):
+
+        a_file = open(filename, "w")
+        json.dump(dictionary_data, a_file)
+        a_file.close()
+        #
+        # a_file = open(filename, "r")
+        # output = a_file.read()
+        # print(output)
+        # # OUTPUT
+        # # {"a": 1, "b": 2}
+        # a_file.close()
+
 
 if __name__ == '__main__':
     D = 2851.26115
@@ -88,7 +125,8 @@ if __name__ == '__main__':
     # peak_amplitudes_min = np.array(dataframe['ODMR_norm'][peaks_min])
     peak_amplitudes_min = np.array(dataframe['ODMR_base'][peaks_min])
 
-    interpolate_peaks_min = interpolate.interp1d(peak_positions_min, peak_amplitudes_min, kind='quadratic', fill_value="extrapolate")#(peak_amplitudes_min[0], peak_amplitudes_min[-1]))#"#extrapolate")
+    interpolate_peaks_min = interpolate.interp1d(peak_positions_min, peak_amplitudes_min, kind='quadratic',
+                                                 fill_value="extrapolate")  # (peak_amplitudes_min[0], peak_amplitudes_min[-1]))#"#extrapolate")
     wavelet_min = interpolate_peaks_min(dataframe['MW'])
 
     plt.plot(dataframe['MW'], dataframe['ODMR_norm'])
@@ -100,18 +138,16 @@ if __name__ == '__main__':
     plt.plot(dataframe['MW'], dataframe['ODMR_minus_base'])
     plt.show()
 
-
-
-
     min_distance = len(dataframe) / (max(dataframe['MW']) - min(dataframe['MW'])) * 50
-    height = 0.1 #(max(-dataframe['ODMR']) - min(-dataframe['ODMR'])) * 0.1
+    height = 0.1  # (max(-dataframe['ODMR']) - min(-dataframe['ODMR'])) * 0.1
     min_width = len(dataframe) / (max(dataframe['MW']) - min(dataframe['MW'])) * 5
     max_width = len(dataframe) / (max(dataframe['MW']) - min(dataframe['MW'])) * 15
     # time0 = time.time()
     # peaks, properties = find_peaks(dataframe['ODMR_norm'], distance=min_distance, height=height)
 
     dataframe['ODMR_smooth'] = savgol_filter(dataframe['ODMR_minus_base'], 41, 2)
-    peaks, properties = find_peaks(dataframe['ODMR_smooth'], distance=min_distance, height=height)#, width=[min_width,max_width])
+    peaks, properties = find_peaks(dataframe['ODMR_smooth'], distance=min_distance,
+                                   height=height)  # , width=[min_width,max_width])
     # time1 = time.time()
     peak_positions = np.array(dataframe['MW'][peaks])
     # peak_amplitudes = np.array(dataframe['ODMR_norm'][peaks])
@@ -124,8 +160,6 @@ if __name__ == '__main__':
     plt.plot(dataframe['MW'], dataframe['ODMR_minus_base'])
     plt.plot(dataframe['MW'], wavelet)
     plt.show()
-
-
 
     # min_distance_min = 0 #len(dataframe) / (max(dataframe['MW']) - min(dataframe['MW'])) * 2#25
     # # peaks_min, properties_min = find_peaks(dataframe['ODMR'], distance=min_distance)
@@ -159,7 +193,6 @@ if __name__ == '__main__':
     plt.plot(dataframe['MW'], dataframe['ODMR_unitary'])
     # plt.show()
 
-
     # plt.plot(dataframe['MW'], dataframe['ODMR_norm'])
     #
     # plt.plot(dataframe['MW'], dataframe['ODMR_base'])
@@ -167,15 +200,13 @@ if __name__ == '__main__':
     # plt.plot(dataframe['MW'], wavelet_min)
     # plt.show()
 
-
-
-    D = 2870# 2851.26115
+    D = 2870  # 2851.26115
     Mz_array = np.array([7.32168327, 6.66104172, 9.68158138, 5.64605102])
 
     # B_labx: 191.945068 + / - 0.06477634(0.03 %)(init=194.7307)
     # B_laby: 100.386360 + / - 0.04340693(0.04 %)(init=94.97649)
     # B_labz: 45.6577322 + / - 0.02524832(0.06 %)(init=38.2026)
-    B_lab = np.array([191.945068, 100.386360, 45.6577322])# + np.array([20, 0, 0])
+    B_lab = np.array([191.945068, 100.386360, 45.6577322])  # + np.array([20, 0, 0])
     # B_labx: 169.118217 + / - 0.01067529(0.01 %)(init=177.0279)
     # B_laby: 87.7059717 + / - 0.01101454(0.01 %)(init=86.34226)
     # B_labz: 40.4265965 + / - 0.01059013(0.03 %)(init=34.72964)
@@ -183,8 +214,11 @@ if __name__ == '__main__':
 
     B_lab = np.array([169.118217, 87.7059717, 40.4265965])
 
+    init_params = {'B_labx': 169.12151185371846, 'B_laby': 87.71808391787972, 'B_labz': 40.39868769723933,
+                   'glor': 4.441357423298525, 'D': 2867.612730518484, 'Mz1': 1.8590745274082607,
+                   'Mz2': 2.1625981441610023, 'Mz3': 1.6660422665604973, 'Mz4': 2.04334144847836}
 
-
+    print(init_params['B_labx'])
 
     omega = np.linspace(2000, 3800, 1800)
     # glor = 10
@@ -195,12 +229,12 @@ if __name__ == '__main__':
     # plt.plot(omega, odmr_signal_voigt, c='k')
     #
     # omega = np.linspace(2000, 3800, 1800)
-    init_B = 200 #220
+    init_B = 200  # 220
     init_theta = 80.0
     init_phi = 26  # 80 #26.9
-    init_glor = 5 #10.
+    init_glor = 5  # 10.
     print(nv.CartesianVector(init_B, init_theta, init_phi), B_lab)
-    init_Blab = B_lab #nv.CartesianVector(init_B, init_theta, init_phi)
+    init_Blab = B_lab  # nv.CartesianVector(init_B, init_theta, init_phi)
     summodel = Model(nv_for_fit.sum_odmr)
     y = np.array(dataframe['ODMR_unitary'])
     x = np.array(dataframe['MW'])
@@ -219,12 +253,18 @@ if __name__ == '__main__':
 
     fitResult = summodel.fit(y, params, x=x)
 
-    print(fitResult.fit_report())
+    print(fitResult.best_values)
 
     # plt.plot(df_crop['MW'], df_crop['ODMR_norm'], color='k', markersize=5, marker='o', linewidth=1)
     # plt.plot(df_crop['MW'][peaks], df_crop['ODMR_norm'][peaks], "x", label='exp peaks')
     plt.plot(x, summodel.eval(params, x=x), 'g--')
     plt.plot(x, fitResult.best_fit, 'g-')
+
+    nv_for_fit.fit_odmr_lorentz(x, y, init_params, varyB=True, varyGlor=True, varyD=True,
+                     varyMz=False)
+    print(nv_for_fit.fitResultLorentz.fit_report())
+    print(nv_for_fit.fitResultLorentz.best_values)
+
 
 
     ### fit voigt
@@ -256,9 +296,6 @@ if __name__ == '__main__':
     # # plt.plot(df_crop['MW'][peaks], df_crop['ODMR_norm'][peaks], "x", label='exp peaks')
     # plt.plot(x, summodel_voigt.eval(params, x=x), 'b--')
     # plt.plot(x, fitResult_voigt.best_fit, 'b-')
-
-
-
 
     plt.show()
 

@@ -3,6 +3,7 @@ import numpy as np
 from detect_peaks import *
 from utilities import *
 import glob
+import json
 
 if __name__ == '__main__':
 
@@ -17,10 +18,22 @@ if __name__ == '__main__':
     # Mz3: 1.66604227 + / - 32864.9733(1972637.42 %)(init=0)
     # Mz4: 2.04334145 + / - 32864.9365(1608391.81 %)(init=0)
 
-    D = 2867.61273
-    Mz_array = np.array([1.85907453, 2.16259814, 1.66604227, 2.04334145]) #np.array([7.32168327, 6.66104172, 9.68158138, 5.64605102])
+    # read parameters
+    filename = "ODMR_fit_parameters.json"
+    a_file = open(filename, "r")
+    parameters = json.load(a_file)
+    # parameters = dict(parameters)
+    print(parameters)
 
-    B_lab = np.array([169.121512, 87.7180839, 40.3986877]) #np.array([191.945068, 100.386360, 45.6577322])
+
+    D = parameters["D"] #2867.61273
+    Mz_array = np.array([parameters["Mz1"], parameters["Mz2"], parameters["Mz3"], parameters["Mz4"]]) #np.array([1.85907453, 2.16259814, 1.66604227, 2.04334145]) #np.array([7.32168327, 6.66104172, 9.68158138, 5.64605102])
+
+    B_lab = np.array([parameters["B_labx"], parameters["B_laby"], parameters["B_labz"]]) #np.array([169.121512, 87.7180839, 40.3986877]) #np.array([191.945068, 100.386360, 45.6577322])
+
+    print('D = ', D)
+    print('Mz_array =', Mz_array)
+    print('B_lab =', B_lab)
 
     # NV center orientation in laboratory frame
     # (100)
@@ -41,7 +54,7 @@ if __name__ == '__main__':
     peaks_list = []
     #print()
     for filename in filenames:
-        #print(filename)
+        # print(filename)
         dataframe = import_data(filename)
         # print(dataframe)
         peaks, amplitudes = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=False)
@@ -49,7 +62,7 @@ if __name__ == '__main__':
         peaks_list.append(peaks)
 
     peaks_list = np.array(peaks_list).flatten()
-    # print(peaks_list)
+    print(peaks_list)
 
     delta_frequencies = frequencies0 - peaks_list #peaks[1::2]
     #print("\ndelta F =",delta_frequencies)
