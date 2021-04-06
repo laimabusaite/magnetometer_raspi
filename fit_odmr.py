@@ -107,7 +107,8 @@ if __name__ == '__main__':
     print(nv_for_fit.B_lab)
 
     # filename = 'data/test_2920_650_16dBm_1024_ODMR.dat'
-    filename = 'full_scan1.dat'
+    # filename = 'full_scan1.dat'
+    filename = 'full_scan2.dat'
     dataframe = import_data(filename)
     print(dataframe)
 
@@ -115,7 +116,7 @@ if __name__ == '__main__':
     plt.show()
 
     # dataframe['ODMR_smooth'] = savgol_filter(dataframe['ODMR_norm'], 41, 2)
-    dataframe['ODMR_base'] = savgol_filter(dataframe['ODMR_norm'], 101, 2)
+    dataframe['ODMR_base'] = savgol_filter(dataframe['ODMR_norm'], 95, 2)
 
     min_distance_min = len(dataframe) / (max(dataframe['MW']) - min(dataframe['MW'])) * 20
     # peaks_min, properties_min = find_peaks(dataframe['ODMR'], distance=min_distance)
@@ -135,17 +136,18 @@ if __name__ == '__main__':
     plt.show()
 
     dataframe['ODMR_minus_base'] = (dataframe['ODMR_norm'] - wavelet_min)
-    plt.plot(dataframe['MW'], dataframe['ODMR_minus_base'])
-    plt.show()
+    # plt.plot(dataframe['MW'], dataframe['ODMR_minus_base'])
+    # plt.show()
 
     min_distance = len(dataframe) / (max(dataframe['MW']) - min(dataframe['MW'])) * 50
-    height = 0.1  # (max(-dataframe['ODMR']) - min(-dataframe['ODMR'])) * 0.1
+    height = 0.05  # (max(-dataframe['ODMR']) - min(-dataframe['ODMR'])) * 0.1
     min_width = len(dataframe) / (max(dataframe['MW']) - min(dataframe['MW'])) * 5
     max_width = len(dataframe) / (max(dataframe['MW']) - min(dataframe['MW'])) * 15
     # time0 = time.time()
     # peaks, properties = find_peaks(dataframe['ODMR_norm'], distance=min_distance, height=height)
 
     dataframe['ODMR_smooth'] = savgol_filter(dataframe['ODMR_minus_base'], 41, 2)
+
     peaks, properties = find_peaks(dataframe['ODMR_smooth'], distance=min_distance,
                                    height=height)  # , width=[min_width,max_width])
     # time1 = time.time()
@@ -158,6 +160,7 @@ if __name__ == '__main__':
     wavelet = interpolate_peaks(dataframe['MW'])
 
     plt.plot(dataframe['MW'], dataframe['ODMR_minus_base'])
+    plt.plot(dataframe['MW'], dataframe['ODMR_smooth'])
     plt.plot(dataframe['MW'], wavelet)
     plt.show()
 
@@ -261,7 +264,7 @@ if __name__ == '__main__':
     plt.plot(x, fitResult.best_fit, 'g-')
 
     nv_for_fit.fit_odmr_lorentz(x, y, init_params, varyB=True, varyGlor=True, varyD=True,
-                     varyMz=False)
+                     varyMz=True)
     print(nv_for_fit.fitResultLorentz.fit_report())
     print(nv_for_fit.fitResultLorentz.best_values)
 
