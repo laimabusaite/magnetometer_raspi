@@ -60,12 +60,12 @@ class NVsetForFitting(nv.NVcenterSet):
     def fit_odmr_lorentz(self, x, y, init_params, varyB=True, varyGlor=True, varyD=True,
                          varyMz=False):
 
-        summodel = Model(self.sum_odmr)
-        params = summodel.make_params(B_labx=init_params['B_labx'], B_laby=init_params['B_laby'], B_labz=init_params['B_labz'], glor=init_params['glor'],
+        self.summodel = Model(self.sum_odmr)
+        params = self.summodel.make_params(B_labx=init_params['B_labx'], B_laby=init_params['B_laby'], B_labz=init_params['B_labz'], glor=init_params['glor'],
                                       D=init_params['D'],
                                       Mz1=init_params['Mz1'], Mz2=init_params['Mz2'], Mz3=init_params['Mz3'],
                                       Mz4=init_params['Mz4'])
-        params.update(summodel.make_params())
+        params.update(self.summodel.make_params())
         params['B_labx'].set(init_params['B_labx'], min=0, max=400, vary=varyB)
         params['B_laby'].set(init_params['B_laby'], min=0, max=400, vary=varyB)
         params['B_labz'].set(init_params['B_labz'], min=0, max=400, vary=varyB)
@@ -76,7 +76,9 @@ class NVsetForFitting(nv.NVcenterSet):
         params['Mz3'].set(init_params['Mz3'], min=-10, max=10, vary=varyMz)
         params['Mz4'].set(init_params['Mz4'], min=-10, max=10, vary=varyMz)
 
-        self.fitResultLorentz = summodel.fit(y, params, x=x)
+        self.params = params
+
+        self.fitResultLorentz = self.summodel.fit(y, self.params, x=x)
 
         self.save_parameters(self.fitResultLorentz.best_values, "ODMR_fit_parameters.json")
 
@@ -108,7 +110,8 @@ if __name__ == '__main__':
 
     # filename = 'data/test_2920_650_16dBm_1024_ODMR.dat'
     # filename = 'full_scan1.dat'
-    filename = 'full_scan2.dat'
+    # filename = 'full_scan2.dat'
+    filename = 'full_scan_200.dat'
     dataframe = import_data(filename)
     print(dataframe)
 
@@ -118,7 +121,7 @@ if __name__ == '__main__':
     # dataframe['ODMR_smooth'] = savgol_filter(dataframe['ODMR_norm'], 41, 2)
     dataframe['ODMR_base'] = savgol_filter(dataframe['ODMR_norm'], 95, 2)
 
-    min_distance_min = len(dataframe) / (max(dataframe['MW']) - min(dataframe['MW'])) * 20
+    min_distance_min = len(dataframe) / (max(dataframe['MW']) - min(dataframe['MW'])) * 40
     # peaks_min, properties_min = find_peaks(dataframe['ODMR'], distance=min_distance)
     peaks_min, properties_min = find_peaks(-dataframe['ODMR_base'], distance=min_distance_min)
     # time1 = time.time()
@@ -126,7 +129,7 @@ if __name__ == '__main__':
     # peak_amplitudes_min = np.array(dataframe['ODMR_norm'][peaks_min])
     peak_amplitudes_min = np.array(dataframe['ODMR_base'][peaks_min])
 
-    interpolate_peaks_min = interpolate.interp1d(peak_positions_min, peak_amplitudes_min, kind='quadratic',
+    interpolate_peaks_min = interpolate.interp1d(peak_positions_min, peak_amplitudes_min, kind='linear',
                                                  fill_value="extrapolate")  # (peak_amplitudes_min[0], peak_amplitudes_min[-1]))#"#extrapolate")
     wavelet_min = interpolate_peaks_min(dataframe['MW'])
 
@@ -218,8 +221,8 @@ if __name__ == '__main__':
     B_lab = np.array([169.118217, 87.7059717, 40.4265965])
 
     init_params = {'B_labx': 169.12151185371846, 'B_laby': 87.71808391787972, 'B_labz': 40.39868769723933,
-                   'glor': 4.441357423298525, 'D': 2867.612730518484, 'Mz1': 1.8590745274082607,
-                   'Mz2': 2.1625981441610023, 'Mz3': 1.6660422665604973, 'Mz4': 2.04334144847836}
+                   'glor': 4.441357423298525, 'D': 2867.612730518484, 'Mz1': 0,
+                   'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
 
     print(init_params['B_labx'])
 
@@ -263,10 +266,27 @@ if __name__ == '__main__':
     plt.plot(x, summodel.eval(params, x=x), 'g--')
     plt.plot(x, fitResult.best_fit, 'g-')
 
-    nv_for_fit.fit_odmr_lorentz(x, y, init_params, varyB=True, varyGlor=True, varyD=True,
-                     varyMz=True)
+    nv_for_fit.fit_odmr_lorentz(x, y, init_params, varyB=True, varyGlor=False, varyD=False,
+                     varyMz=False)
     print(nv_for_fit.fitResultLorentz.fit_report())
     print(nv_for_fit.fitResultLorentz.best_values)
+    plt.plot(x, nv_for_fit.summodel.eval(nv_for_fit.params, x=x), 'r--')
+    plt.plot(x, nv_for_fit.fitResultLorentz.best_fit, 'r-')
+
+    # read parameters
+    filename = "ODMR_fit_parameters.json"
+    a_file = open(filename, "r")
+    init_params = json.load(a_file)
+    # parameters = dict(parameters)
+    print('Second iteration: vary all \n init:')
+    print(init_params)
+
+    nv_for_fit.fit_odmr_lorentz(x, y, init_params, varyB=True, varyGlor=True, varyD=True,
+                                varyMz=True)
+    print(nv_for_fit.fitResultLorentz.fit_report())
+    print(nv_for_fit.fitResultLorentz.best_values)
+    plt.plot(x, nv_for_fit.summodel.eval(nv_for_fit.params, x=x), 'k--')
+    plt.plot(x, nv_for_fit.fitResultLorentz.best_fit, 'k-')
 
 
 
