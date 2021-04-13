@@ -6,7 +6,7 @@ import glob
 import json
 
 if __name__ == '__main__':
-
+    import matplotlib.pyplot as plt
     ### parameters 06.04.2021
     # B_labx: 169.121512 + / - 0.01092155(0.01 %)(init=169.1182)
     # B_laby: 87.7180839 + / - 0.08322728(0.09 %)(init=87.70597)
@@ -50,16 +50,22 @@ if __name__ == '__main__':
     # print(A_inv)
 
     # filename = 'data/test_2920_650_16dBm_1024_ODMR.dat'
-    filenames = sorted(glob.glob("test_data/*.dat"))
+    # filenames = sorted(glob.glob("test_data/*.dat"))
+    filenames_all = sorted(glob.glob("data/*.dat"))
+    filenames = [filename for filename in filenames_all if 'no_magnet' in filename]
+    print(filenames)
     peaks_list = []
     #print()
-    for filename in filenames:
-        # print(filename)
+    # plt.figure()
+    for idx, filename in enumerate(filenames):
+        plt.figure(idx+1)
+        print(filename)
         dataframe = import_data(filename)
         # print(dataframe)
-        peaks, amplitudes = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=False)
+        peaks, amplitudes = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=True)
         #print(peaks)
         peaks_list.append(peaks)
+    plt.show()
 
     peaks_list = np.array(peaks_list).flatten()
     print(peaks_list)

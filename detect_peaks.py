@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
-from scipy.signal import find_peaks
+from scipy.signal import find_peaks, savgol_filter
 # from scipy.signal import savgol_filter, find_peaks, find_peaks_cwt
 import time
+
 
 def import_data(filename):
     df = pd.read_csv(filename, header=0, delimiter='\t', usecols=[0, 1], names=['MW', 'ODMR'])
@@ -23,6 +24,7 @@ def detect_peaks(x_data, y_data, height=None, debug=False):
     x_data = np.array(x_data)
     y_data = np.array(y_data)
     df = pd.DataFrame(data={'MW': x_data, 'ODMR': y_data})
+    # df['ODMR'] = df['ODMR_raw'] #savgol_filter(df['ODMR_raw'], 71, 4)
 
     min_distance = len(df) / (max(df['MW']) - min(df['MW'])) * 50
     # print(min_distance)
@@ -30,7 +32,7 @@ def detect_peaks(x_data, y_data, height=None, debug=False):
         height_norm = (max(-df['ODMR']) - min(-df['ODMR'])) * height
     time0 = time.time()
     if height:
-        peaks, properties = find_peaks(-df['ODMR'], distance=min_distance, height=height)
+        peaks, properties = find_peaks(-df['ODMR'], distance=min_distance, height=height_norm)
     else:
         peaks, properties = find_peaks(-df['ODMR'], distance=min_distance)
     time1 = time.time()
@@ -43,9 +45,10 @@ def detect_peaks(x_data, y_data, height=None, debug=False):
         print('Time:', time1 - time0)
         print(peaks)
         print(len(peak_positions), peak_positions)
+        # plt.plot(df['MW'], df['ODMR_raw'], color='b', markersize=5, marker='o', linewidth=1)
         plt.plot(df['MW'], df['ODMR'], color='k', markersize=5, marker='o', linewidth=1)
         plt.plot(df['MW'][peaks], df['ODMR'][peaks], "x", label='exp peaks')
-        plt.show()
+        # plt.show()
 
     return peak_positions, peak_amplitudes
 
