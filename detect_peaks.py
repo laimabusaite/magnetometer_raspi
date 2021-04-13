@@ -13,7 +13,7 @@ def import_data(filename):
     df_crop['ODMR_norm'] = (1 - df_crop['ODMR'] / max(df_crop['ODMR'])) / scale
     return df_crop
 
-def detect_peaks(x_data, y_data, debug=False):
+def detect_peaks(x_data, y_data, height=None, debug=False):
     # df = pd.read_csv(filename, header=0, delimiter='\t', usecols=[0, 1], names=['MW', 'ODMR'])
     # df.sort_values('MW', inplace=True)
     # df_crop = pd.DataFrame(df[(df['MW'] > 2300) & (df['MW'] < 3490)])
@@ -25,10 +25,14 @@ def detect_peaks(x_data, y_data, debug=False):
     df = pd.DataFrame(data={'MW': x_data, 'ODMR': y_data})
 
     min_distance = len(df) / (max(df['MW']) - min(df['MW'])) * 50
-    height = (max(-df['ODMR']) - min(-df['ODMR'])) * 0.1
+    # print(min_distance)
+    if height:
+        height_norm = (max(-df['ODMR']) - min(-df['ODMR'])) * height
     time0 = time.time()
-    # peaks, properties = find_peaks(-df['ODMR'], distance=min_distance, height=height)
-    peaks, properties = find_peaks(-df['ODMR'], distance=min_distance)
+    if height:
+        peaks, properties = find_peaks(-df['ODMR'], distance=min_distance, height=height)
+    else:
+        peaks, properties = find_peaks(-df['ODMR'], distance=min_distance)
     time1 = time.time()
     peak_positions = np.array(df['MW'][peaks])
     peak_amplitudes = np.array(df['ODMR'][peaks])

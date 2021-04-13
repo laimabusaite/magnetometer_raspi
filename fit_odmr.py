@@ -58,7 +58,7 @@ class NVsetForFitting(nv.NVcenterSet):
         return sum_odmr
 
     def fit_odmr_lorentz(self, x, y, init_params, varyB=True, varyGlor=True, varyD=True,
-                         varyMz=False):
+                         varyMz=False, save_filename='ODMR_fit_parameters.json'):
 
         self.summodel = Model(self.sum_odmr)
         params = self.summodel.make_params(B_labx=init_params['B_labx'], B_laby=init_params['B_laby'], B_labz=init_params['B_labz'], glor=init_params['glor'],
@@ -80,7 +80,7 @@ class NVsetForFitting(nv.NVcenterSet):
 
         self.fitResultLorentz = self.summodel.fit(y, self.params, x=x)
 
-        self.save_parameters(self.fitResultLorentz.best_values, "ODMR_fit_parameters.json")
+        self.save_parameters(self.fitResultLorentz.best_values, save_filename)
 
     def save_parameters(self, dictionary_data, filename):
 
@@ -97,6 +97,9 @@ class NVsetForFitting(nv.NVcenterSet):
 
 
 if __name__ == '__main__':
+
+    import datetime
+
     D = 2851.26115
     Mz_array = np.array([7.32168327, 6.66104172, 9.68158138, 5.64605102])
     B_lab = np.array([191.945068, 100.386360, 45.6577322])
@@ -265,16 +268,17 @@ if __name__ == '__main__':
     # plt.plot(df_crop['MW'][peaks], df_crop['ODMR_norm'][peaks], "x", label='exp peaks')
     plt.plot(x, summodel.eval(params, x=x), 'g--')
     plt.plot(x, fitResult.best_fit, 'g-')
-
+    save_filename = f"ODMR_fit_parameters{time.time()}.json" #f"ODMR_fit_parameters{datetime.datetime.now().isoformat()}.json" #'ODMR_fit_parameters.json' #
+    print(save_filename)
     nv_for_fit.fit_odmr_lorentz(x, y, init_params, varyB=True, varyGlor=False, varyD=False,
-                     varyMz=False)
+                     varyMz=False, save_filename=save_filename)
     print(nv_for_fit.fitResultLorentz.fit_report())
     print(nv_for_fit.fitResultLorentz.best_values)
     plt.plot(x, nv_for_fit.summodel.eval(nv_for_fit.params, x=x), 'r--')
     plt.plot(x, nv_for_fit.fitResultLorentz.best_fit, 'r-')
 
     # read parameters
-    filename = "ODMR_fit_parameters.json"
+    filename = save_filename #"ODMR_fit_parameters.json"
     a_file = open(filename, "r")
     init_params = json.load(a_file)
     # parameters = dict(parameters)
@@ -282,7 +286,7 @@ if __name__ == '__main__':
     print(init_params)
 
     nv_for_fit.fit_odmr_lorentz(x, y, init_params, varyB=True, varyGlor=True, varyD=True,
-                                varyMz=True)
+                                varyMz=True, save_filename = save_filename)
     print(nv_for_fit.fitResultLorentz.fit_report())
     print(nv_for_fit.fitResultLorentz.best_values)
     plt.plot(x, nv_for_fit.summodel.eval(nv_for_fit.params, x=x), 'k--')

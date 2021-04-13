@@ -73,6 +73,7 @@ class NVcenter(object):
             print(e)
 
 
+
 class NVcenterSet(object):
     def __init__(self, D=2870, Mz_array=np.array([0, 0, 0, 0])):
         # super(NVcenterSet, self).__init__()
@@ -88,6 +89,10 @@ class NVcenterSet(object):
                                 NVcenter(D, Mz_array[2]),
                                 NVcenter(D, Mz_array[3])])
         self.setMagnetic()
+
+    def setNVparameters(self, D=2870, Mz_array=np.array([0,0,0,0])):
+        for m in range(4):
+            self.nvlist[m].setNVparameters(self, D=D, Mz=Mz_array[m])
 
     def setMagnetic(self, B_lab=np.array([0.0, 0.0, 0.0])):
         """Set magnetic field in Cartesian coordinated Bx, By, Bz"""
@@ -172,6 +177,19 @@ class NVcenterSet(object):
 
     # def deltaB_from_deltaFrequencies(self, A_inv, deltaFrequencies):
     #     return np.dot(A_inv, deltaFrequencies.T)
+
+    def noisy_odmr(self, x, glor, NVparameters, noise_std = 0.005):
+        '''
+        parameters = {"B_labx": 169.12, "B_laby": 87.71, "B_labz": 40.39, "glor": 4.44, "D": 2867.61, "Mz1": 1.85, "Mz2": 2.16, "Mz3": 1.66, "Mz4": 2.04}
+        '''
+        D = NVparameters['D']
+        Mz_array = np.array([NVparameters['Mz1'], NVparameters['Mz2'], NVparameters['Mz3'], NVparameters['Mz4']])
+        B_lab = np.array([NVparameters['B_labx'], NVparameters['B_labx'], NVparameters['B_labx']])
+        self.setNVparameters(D, Mz_array)
+        self.setMagnetic(B_lab=B_lab)
+        odmr_signal = nv_center_set.sum_odmr(x, glor)
+        noisy_odmr_signal = add_noise(odmr_signal, noise_std)
+        return noisy_odmr_signal
 
 
 if __name__ == '__main__':
