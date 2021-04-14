@@ -3,7 +3,7 @@ import numpy as np
 # from scipy.signal import find_peaks, savgol_filter
 from scipy.signal import savgol_filter, find_peaks, find_peaks_cwt
 import time
-from lmfit.models import LorentzianModel
+# from lmfit.models import LorentzianModel
 from scipy.optimize import curve_fit
 from utilities import *
 
