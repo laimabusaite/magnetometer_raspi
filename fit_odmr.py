@@ -7,6 +7,7 @@ from scipy import interpolate
 from scipy.signal import find_peaks, savgol_filter
 from utilities import *
 import json
+from scipy.optimize import curve_fit
 
 from scipy.special import wofz
 

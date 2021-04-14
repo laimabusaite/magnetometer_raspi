@@ -93,7 +93,7 @@ if __name__ == '__main__':
         peaks, amplitudes = detect_peaks_cwt(dataframe['MW'], dataframe['ODMR'], debug=True)
         #print(peaks)
         peaks_list.append(peaks)
-    plt.show()
+    # plt.show()
 
     peaks_list = np.array(peaks_list).flatten()
     print(peaks_list)
@@ -104,3 +104,31 @@ if __name__ == '__main__':
     Bsens = deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
 
     print("\nB =",Bsens)
+
+    filenames_all = sorted(glob.glob("data/*.dat"))
+    filenames = [filename for filename in filenames_all if 'no_magnet' in filename]
+    print(filenames)
+    peaks_list = []
+    plt.figure(3)
+    for idx, filename in enumerate(filenames):
+        # plt.figure(idx+1)
+        print(filename)
+        dataframe = import_data(filename)
+        # print(dataframe)
+        # dataframe.to_csv(f'test_pandas_save/{os.path.basename(filename)}', header=None, index=None, sep=' ', mode='a')
+        peaks = detect_peaks_simple(dataframe['MW'], dataframe['ODMR'], debug=True)
+        # print(peaks)
+        peaks_list.append(peaks)
+
+
+    peaks_list = np.array(peaks_list).flatten()
+    print(peaks_list)
+
+    delta_frequencies = frequencies0 - peaks_list  # peaks[1::2]
+    # print("\ndelta F =",delta_frequencies)
+
+    Bsens = deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
+
+    print("\nB =", Bsens)
+
+    plt.show()

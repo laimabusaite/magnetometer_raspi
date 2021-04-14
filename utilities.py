@@ -41,9 +41,9 @@ def gauss(x, x0, amplitude, gamma):
     """ Return Gaussian line shape at x with HWHM alpha """
     return amplitude * np.sqrt(4*np.log(2) / np.pi) / gamma * np.exp(-((x-x0) / gamma)**2 * 4*np.log(2))
 
-def lorentz(x, x0, amplitude, gamma):
+def lorentz(x, x0, amplitude, gamma, y0=0):
     """ Return Lorentzian line shape at x with HWHM gamma """
-    return amplitude * gamma / (2*np.pi) / ((x-x0)**2 + (gamma/2.)**2)
+    return y0 + amplitude * gamma / (2*np.pi) / ((x-x0)**2 + (gamma/2.)**2)
 
 
 def asymetrical_voigt(x, x0, amplitude, gamma, asym_coef, fraction):

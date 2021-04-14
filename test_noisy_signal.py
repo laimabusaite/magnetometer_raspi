@@ -42,12 +42,13 @@ if __name__ == '__main__':
 
     noise_std = 0.1
     noisy_odmr_signal = add_noise(odmr_signal, noise_std)
-    peaks, amplitudes = detect_peaks(omega, noisy_odmr_signal, height=0.5)
+    peaks_simple, amplitudes_simple = detect_peaks_simple(omega, noisy_odmr_signal, height=0.5)
+    peaks, amplitudes = detect_peaks(omega, noisy_odmr_signal)
     peaks_cwt, amplitudes_cwt = detect_peaks_cwt(omega, noisy_odmr_signal, widthMHz=[5]*8, min_snr=2.5)
     print(peaks_cwt)
 
     odmr_smooth_signal = savgol_filter(noisy_odmr_signal, 61, 2)
-    peaks_smooth, amplitudes_smooth = detect_peaks(omega, odmr_smooth_signal, height=0.2)
+    peaks_smooth, amplitudes_smooth = detect_peaks_simple(omega, odmr_smooth_signal, height=0.2)
 
 
     plt.plot(omega, noisy_odmr_signal, color='C0')
@@ -61,6 +62,7 @@ if __name__ == '__main__':
     plt.show()
 
     print('peaks_clean\n', peaks_clean)
+    print('peaks\n', peaks_simple)
     print('peaks\n', peaks)
     print('peaks_smooth\n', peaks_smooth)
     print('peaks_cwt\n', peaks_cwt)
@@ -68,13 +70,18 @@ if __name__ == '__main__':
     A_inv = nv_center_set.calculateAinv(nv_center_set.B_lab)
     print('A_inv\n', A_inv)
 
-    print('From noisy signal')
-    delta_frequencies = (peaks_clean - peaks)[1::2]
+    print('From noisy signal simple')
+    delta_frequencies = (peaks_clean - peaks_simple)[1::2]
     print('delta_frequencies\n', delta_frequencies)
     Bsens = deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
     print('Bsens', Bsens)
     print('From noisy signal cwt')
     delta_frequencies = (peaks_clean - peaks_cwt)[1::2]
+    print('delta_frequencies\n', delta_frequencies)
+    Bsens = deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
+    print('Bsens', Bsens)
+    print('From noisy signal fit')
+    delta_frequencies = (peaks_clean - peaks)[1::2]
     print('delta_frequencies\n', delta_frequencies)
     Bsens = deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
     print('Bsens', Bsens)

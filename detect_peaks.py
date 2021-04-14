@@ -3,6 +3,9 @@ import numpy as np
 # from scipy.signal import find_peaks, savgol_filter
 from scipy.signal import savgol_filter, find_peaks, find_peaks_cwt
 import time
+from lmfit.models import LorentzianModel
+from scipy.optimize import curve_fit
+from utilities import *
 
 
 def import_data(filename):
@@ -14,8 +17,35 @@ def import_data(filename):
     df_crop['ODMR_norm'] = (1 - df_crop['ODMR'] / max(df_crop['ODMR'])) / scale
     return df_crop
 
+def detect_peaks(x_data, y_data, debug=False):
+    x_data = np.array(x_data)
+    y_data = np.array(y_data)
+    #x, x0, amplitude, gamma, y0
+    time0 = time.time()
+    x0_init = np.mean(x_data)
+    y0_init = max(y_data)
+    amplitude_init = min(y_data) - max(y_data)
+    gamma_init = 5
+    popt, pconv = curve_fit(lorentz, x_data, y_data, p0=[x0_init, amplitude_init, gamma_init, y0_init])
+    time1 = time.time()
 
-def detect_peaks(x_data, y_data, height=None, debug=False):
+    peak_positions = popt[0]
+    peak_amplitudes = lorentz(peak_positions, popt[0], popt[1], popt[2], popt[3])
+
+    if debug:
+        import matplotlib.pyplot as plt
+        print('fitted peak Lorenz:')
+        print(popt)
+        print('Time:', time1 - time0)
+        y_fitted = lorentz(x_data, popt[0], popt[1], popt[2], popt[3])
+        plt.plot(x_data, y_data, color='k', markersize=5, marker='o', linewidth=1)
+        plt.plot(x_data, y_fitted)
+        plt.plot(peak_positions, peak_amplitudes, "x", label='exp peaks')
+
+    return peak_positions, peak_amplitudes
+
+
+def detect_peaks_simple(x_data, y_data, height=None, debug=False):
     # df = pd.read_csv(filename, header=0, delimiter='\t', usecols=[0, 1], names=['MW', 'ODMR'])
     # df.sort_values('MW', inplace=True)
     # df_crop = pd.DataFrame(df[(df['MW'] > 2300) & (df['MW'] < 3490)])
