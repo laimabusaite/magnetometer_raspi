@@ -7,6 +7,7 @@ import json
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
+    import os
     ### parameters 06.04.2021
     # B_labx: 169.121512 + / - 0.01092155(0.01 %)(init=169.1182)
     # B_laby: 87.7180839 + / - 0.08322728(0.09 %)(init=87.70597)
@@ -57,12 +58,39 @@ if __name__ == '__main__':
     peaks_list = []
     #print()
     # plt.figure()
+    plt.figure(1)
     for idx, filename in enumerate(filenames):
-        plt.figure(idx+1)
+        # plt.figure(idx+1)
         print(filename)
         dataframe = import_data(filename)
         # print(dataframe)
+        # dataframe.to_csv(f'test_pandas_save/{os.path.basename(filename)}', header=None, index=None, sep=' ', mode='a')
         peaks, amplitudes = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=True)
+        #print(peaks)
+        peaks_list.append(peaks)
+    # plt.show()
+
+    peaks_list = np.array(peaks_list).flatten()
+    print(peaks_list)
+
+    delta_frequencies = frequencies0 - peaks_list #peaks[1::2]
+    #print("\ndelta F =",delta_frequencies)
+
+    Bsens = deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
+
+    print("\nB =",Bsens)
+
+    plt.figure(2)
+    print()
+    print('cwt')
+    peaks_list = []
+    for idx, filename in enumerate(filenames):
+        # plt.figure(idx+1)
+        print(filename)
+        dataframe = import_data(filename)
+        # print(dataframe)
+        # dataframe.to_csv(f'test_pandas_save/{os.path.basename(filename)}', header=None, index=None, sep=' ', mode='a')
+        peaks, amplitudes = detect_peaks_cwt(dataframe['MW'], dataframe['ODMR'], debug=True)
         #print(peaks)
         peaks_list.append(peaks)
     plt.show()

@@ -1,6 +1,12 @@
 import numpy as np
 import math
 
+def round_to_decimal(a, round_to=0):
+    if abs(round_to) > 0:
+        return np.round(a/round_to)*round_to
+    else:
+        return np.round(a)
+
 
 def deltaB_from_deltaFrequencies(A_inv, deltaFrequencies):
     return np.dot(A_inv, deltaFrequencies.T)
@@ -54,5 +60,4 @@ def asymetrical_voigt_curve(omega, omega_tr, ampl_tr, g, asym_coef=0, fraction=0
     for i in range(len(omega_tr)):
         if np.real(ampl_tr[i]) > 0:
             res += abs(asymetrical_voigt(omega, np.real(omega_tr[i]), np.real(ampl_tr[i]), g, asym_coef, fraction))
-            # print(omega_tr[i], np.real(ampl_tr[i]), max(res))
-    return res
+            # pri
