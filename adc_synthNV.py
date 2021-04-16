@@ -18,6 +18,11 @@ from utilities import *
 import glob
 import json
 
+import subprocess
+
+import datetime
+import string
+
 os.system("clear")
 
 # read parameters
@@ -27,6 +32,7 @@ parameters = json.load(a_file)
 # parameters = dict(parameters)
 # print(parameters)
 
+print("ODMR fit parameters")
 D = parameters["D"] #2867.61273
 Mz_array = np.array([parameters["Mz1"], parameters["Mz2"], parameters["Mz3"], parameters["Mz4"]]) #np.array([1.85907453, 2.16259814, 1.66604227, 2.04334145]) #np.array([7.32168327, 6.66104172, 9.68158138, 5.64605102])
 B_lab = np.array([parameters["B_labx"], parameters["B_laby"], parameters["B_labz"]]) #np.array([169.121512, 87.7180839, 40.3986877]) #np.array([191.945068, 100.386360, 45.6577322])
@@ -72,9 +78,9 @@ signal.signal(signal.SIGINT, signal_handler)
 sleeptime=0.4
 
 ser = serial.Serial()
-ser.baudrate = 115200
+ser.baudrate = 460800
 ser.port = '/dev/ttyACM0'
-ser.timeout = 4
+ser.timeout = 1
 print("\nSERIAL PORT")
 print(ser)
 time.sleep(sleeptime)
@@ -117,7 +123,10 @@ print("{0:s}\t".format(temp_error))
 
 
 def write_file(x,y,s):
-    filename1="test_data/test_{0:s}.dat".format(s)
+    timestamp = str(datetime.datetime.now())
+    timestamp = timestamp.replace(":","-")
+    timestamp = timestamp.replace(" ","_")
+    filename1="test_data/test_{0:s}_{1:s}.dat".format(s,timestamp)
 
     #print(filename1)
 
@@ -133,6 +142,7 @@ def write_file(x,y,s):
 def scan_peak(f0, dev, step_size, avg1, avg2, level, noise):
     #print("Peak scan, {0:.1f}, {1:.1f}".format(f0, dev))
     t0=time.time()
+
     points=int((2*dev)/step_size)
 
     averages1=avg1
@@ -142,11 +152,16 @@ def scan_peak(f0, dev, step_size, avg1, avg2, level, noise):
     average_chan=[[0 for i1 in range(int(points))] for j1 in range(averages1)]
     for k in range(averages1):
         #print("k={0:d} ".format(k), end="", flush=True)
+        for _ in range(0):
+            send_frequency="f{0:.4f}".format(f0-dev)
+            send_freq=ser.write(send_frequency.encode(encoding='UTF-8',errors='strict'))
+            #send_freq=ser.write(send_frequency.encode(encoding='UTF-8',errors='strict'))
+
+
         for i in range(int(points)):
             vmean=[0 for i1 in range(averages2)]
             #print(" i={0:d}".format(i), end="", flush=True)
             f=(f0-dev+i*step_size)
-
             send_frequency="f{0:.4f}".format(f)
             #print("{0:s}\t".format(send_frequency), end="")
             send_freq=ser.write(send_frequency.encode(encoding='UTF-8',errors='strict'))
@@ -155,7 +170,7 @@ def scan_peak(f0, dev, step_size, avg1, avg2, level, noise):
             #temp_error=temp_error.decode('UTF-8')[1:]
             #print("{0:s}\t".format(temp_error))
 
-            time.sleep(350/1000000)
+            #time.sleep(350/1000000)
             vmean_sum1=0
             #print(" j=", end="", flush=True)
             for j in range(averages2):
@@ -187,7 +202,7 @@ def scan_peak(f0, dev, step_size, avg1, avg2, level, noise):
             vmean_sum2+=average_chan[k][i]
             average_chan1[i]=vmean_sum2/averages1
 
-    write_file(frequency_chan,average_chan1,"dev{0:.1f}_peak{1:.1f}".format(dev,f0))
+    write_file(frequency_chan[2:-2],average_chan1[2:-2],"dev{0:.1f}_peak{1:.1f}".format(dev,f0))
     #peaks_chan=[0 for i1 in range(int(points))]
     #for i in range(int(points)):
     #    peaks_chan[i]=(-1)*average_chan1[i]
@@ -199,8 +214,9 @@ def scan_peak(f0, dev, step_size, avg1, avg2, level, noise):
     #time.sleep(1)
     #plt.close()
     #frequency_chan=np.array(frequency_chan)
-    #print("{0:.1f} s".format(time.time()-t0))
+    #print("\nPeak scan time {0:.4f} s".format(time.time()-t0))
     #return frequency_chan[peaks]
+    return frequency_chan[2:-2], average_chan1[2:-2]
 
 
 def get_baseline(f0,points):
@@ -215,7 +231,7 @@ def get_baseline(f0,points):
     #temp_error=temp_error.decode('UTF-8')[1:]
     #print("{0:s}\t".format(temp_error))
 
-    time.sleep(350/1000000)
+    #time.sleep(350/1000000)
     vmean_sum1=0
     vmean=[0 for i1 in range(points)]
     for i in range(points):
@@ -230,41 +246,67 @@ def get_baseline(f0,points):
     return vmean_sum1/points
 
 
-dev0=20
-step=0.4
+dev0=15
+step=1
 a1=4
 a2=1
-noise=2
+noise=10
+B1={}
+sets = 100
+
+print("\n#######################################################")
+
 t0=time.time()
 
-for i in range(1):
+for i in range(sets):
     #print(i)
+    level = get_baseline(2900,10)
     #scan_peak(2417,dev0,step,a1,a2)
-    level = get_baseline(2611-10,10)
-    scan_peak(2611,dev0,step,a1,a2,level,noise)
+    #level = get_baseline(2900,10)
+#    peak2_MW, peak2_ODMR = scan_peak(2618,dev0,step,a1,a2,level,noise)
+    #peak2_MW = DataFrame(peak2_MW, columns=['MW'])
+    #peak2_ODMR = DataFrame(peak2_ODMR, columns=['ODMR'])
     #scan_peak(2805,dev0,step,a1,a2)
-    level = get_baseline(2938-10,10)
-    scan_peak(2938,dev0,step,a1,a2,level,noise)
+    #level = get_baseline(2900,10)
+#    peak4_MW, peak4_ODMR = scan_peak(2896,dev0,step,a1,a2,level,noise)
     #scan_peak(3113,dev0,step,a1,a2)
-    level = get_baseline(3204-10,10)
-    scan_peak(3204,dev0,step,a1,a2,level,noise)
+    #level = get_baseline(2900,10)
+#    peak6_MW, peak6_ODMR = scan_peak(3230,dev0,step,a1,a2,level,noise)
     #scan_peak(3323,dev0,step,a1,a2)
-    level = get_baseline(3389-10,10)
-    scan_peak(3389,dev0,step,a1,a2,level,noise)
-    level = get_baseline(2905,10)
+    #level = get_baseline(2900,10)
+#    peak8_MW, peak8_ODMR = scan_peak(3380,dev0,step,a1,a2,level,noise)
+    #level = get_baseline(2905,10)
     scan_peak(2905,600,0.2,32,4,level,10)
-
+    t1 = time.time()
     #os.system("python3 plot1.py")
-    filenames = sorted(glob.glob("test_data/*.dat"))
+    #filenames = sorted(glob.glob("test_data/*.dat"))
     peaks_list = []
     #print()
-    for filename in filenames:
-        #print(filename)
-        dataframe = import_data(filename)
-        # print(dataframe)
-        peaks, amplitudes = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=False)
-        #print(peaks)
-        peaks_list.append(peaks)
+    #for filename in filenames:
+    #    #print(filename)
+    #    dataframe = import_data(filename)
+    #    # print(dataframe)
+    #    peaks, amplitudes = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=False)
+    #    #print(peaks)
+    #    peaks_list.append(peaks)
+    peaks, amplitudes = detect_peaks(peak2_MW, peak2_ODMR, debug=False)
+    peaks_list.append(peaks)
+    peaks, amplitudes = detect_peaks(peak4_MW, peak4_ODMR, debug=False)
+    peaks_list.append(peaks)
+    peaks, amplitudes = detect_peaks(peak6_MW, peak6_ODMR, debug=False)
+    peaks_list.append(peaks)
+    peaks, amplitudes = detect_peaks(peak8_MW, peak8_ODMR, debug=False)
+    peaks_list.append(peaks)
+
+#def import_data(filename):
+#    df = pd.read_csv(filename, header=0, delimiter='\t', usecols=[0, 1], names=['MW', 'ODMR'])
+#    df.sort_values('MW', inplace=True)
+#    df_crop = pd.DataFrame(df[(df['MW'] > 2300) & (df['MW'] < 3490)])
+#    df_crop.index = np.arange(0, len(df_crop))
+#    scale = (max(df_crop['ODMR']) - min(df_crop['ODMR'])) / max(df_crop['ODMR']) / 1.
+#    df_crop['ODMR_norm'] = (1 - df_crop['ODMR'] / max(df_crop['ODMR'])) / scale
+#    return df_crop
+
 
     peaks_list = np.array(peaks_list).flatten()
     # print(peaks_list)
@@ -273,16 +315,37 @@ for i in range(1):
     #print("\ndelta F =",delta_frequencies)
 
     Bsens = deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
+    #print(Bsens)
+    #print("\nB calculation time {0:.4f}".format(time.time()-t1))
     print("\nBxyz = ({0:.2f}, {1:.2f}, {2:.2f}) G\t\t|B| = {3:.2f} G".format(Bsens[0],Bsens[1],Bsens[2],np.sqrt(Bsens[0]*Bsens[0]+Bsens[1]*Bsens[1]+Bsens[2]*Bsens[2])))
+    B1[i] = np.sqrt(Bsens[0]*Bsens[0]+Bsens[1]*Bsens[1]+Bsens[2]*Bsens[2])
     #time.sleep(2)
+
+    #filename2="B_values.dat"
+    #print(filename2)
+    #f2 = open(filename2, 'w+')
+    #print("FILE OPEN",f2)
+    #f2.write("%10.9f\n" % Bsens[0])
+    #f2.write("%10.9f\n" % Bsens[1])
+    #f2.write("%10.9f\n" % Bsens[2])
+    #f2.close()
+    #os.system("./asd1")
+    subprocess.Popen(["./asd1", "{0:f}".format(Bsens[0]), "{0:f}".format(Bsens[1]), "{0:f}".format(Bsens[2])])
 
 
 t=time.time()
-print("\nTotal time {0:.1f} s".format(t-t0))
+print("\n-------------------------------------------------------")
+print("\nTotal time {0:.1f} s    Measurements {1:d}    Rate {2:.2f} Hz".format(t-t0,sets,sets/(t-t0)))
 
+Bmean = np.mean([B1[i] for i in range(sets)])
+Bstd = np.std([B1[i] for i in range(sets)])
+
+print("\nB = ({0:.2f} \u00B1 {1:.2f}) G\trB = {2:.2f} %".format(Bmean, Bstd, (Bstd/Bmean)*100))
+
+print("\n#######################################################\n")
 print("\nSHUT DOWN")
 
-print("RF OFF \t", end="")
+print("\nRF OFF \t", end="")
 print(ser.write(b"h0"))
 temp_error=ser.readline()
 temp_error=temp_error.decode('UTF-8')[1:]
@@ -296,3 +359,4 @@ print("{0:s}\t".format(temp_error))
 
 print("Close port\t\t",ser.close())
 print("Port is open\t\t",ser.is_open)
+print()
