@@ -137,6 +137,12 @@ if __name__ == '__main__':
                                                  fill_value="extrapolate")  # (peak_amplitudes_min[0], peak_amplitudes_min[-1]))#"#extrapolate")
     wavelet_min = interpolate_peaks_min(dataframe['MW'])
 
+    plt.plot(dataframe['MW'], -dataframe['ODMR_base'])
+    plt.xlim(min(dataframe['MW']), max(dataframe['MW']))
+    plt.xlabel('MW frequency, MHz')
+    plt.ylabel('Fluorescence intensity, arb. units')
+    plt.show()
+
     plt.plot(dataframe['MW'], dataframe['ODMR_norm'])
     plt.plot(dataframe['MW'], dataframe['ODMR_base'])
     plt.plot(dataframe['MW'], wavelet_min)
