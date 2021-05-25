@@ -27,23 +27,29 @@ def detect_peaks(x_data, y_data, debug=False):
     y0_init = max(y_data)
     amplitude_init = min(y_data) - max(y_data)
     gamma_init = 5
-    popt, pconv = curve_fit(lorentz, x_data, y_data, p0=[x0_init, amplitude_init, gamma_init, y0_init])
-    time1 = time.time()
+    try:
+        popt, pconv = curve_fit(lorentz, x_data, y_data, p0=[x0_init, amplitude_init, gamma_init, y0_init])
+        time1 = time.time()
 
-    peak_positions = popt[0]
-    peak_amplitudes = lorentz(peak_positions, popt[0], popt[1], popt[2], popt[3])
+        peak_positions = popt[0]
+        peak_amplitudes = lorentz(peak_positions, popt[0], popt[1], popt[2], popt[3])
 
-    if debug:
-        import matplotlib.pyplot as plt
-        print('fitted peak Lorenz:')
-        print(popt)
-        print('Time:', time1 - time0)
-        y_fitted = lorentz(x_data, popt[0], popt[1], popt[2], popt[3])
-        plt.plot(x_data, y_data, color='k', markersize=5, marker='o', linewidth=1)
-        plt.plot(x_data, y_fitted)
-        plt.plot(peak_positions, peak_amplitudes, "x", label='exp peaks')
 
-    return peak_positions, peak_amplitudes
+        if debug:
+            import matplotlib.pyplot as plt
+            print('fitted peak Lorenz:')
+            print(popt)
+            print('Time:', time1 - time0)
+            y_fitted = lorentz(x_data, popt[0], popt[1], popt[2], popt[3])
+            plt.plot(x_data, y_data, color='k', markersize=5, marker='o', linewidth=1)
+            plt.plot(x_data, y_fitted)
+            plt.plot(peak_positions, peak_amplitudes, "x", label='exp peaks')
+
+        return peak_positions, peak_amplitudes
+
+    except Exception as e:
+        print(e)
+        return np.array([0,0,0,0]), np.array([0,0,0,0])
 
 
 def detect_peaks_simple(x_data, y_data, height=None, debug=False):
