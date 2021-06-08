@@ -17,7 +17,7 @@ def import_data(filename):
     df_crop['ODMR_norm'] = (1 - df_crop['ODMR'] / max(df_crop['ODMR'])) / scale
     return df_crop
 
-def weighted_average(x,y):
+def weighted_average(x, y):
     yn = 2-2*(y-min(y))/(max(y)-min(y))
     x_min = sum(yn*yn*x)
     y_sum = sum(yn*yn)
