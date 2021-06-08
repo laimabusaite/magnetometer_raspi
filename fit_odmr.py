@@ -97,6 +97,12 @@ class NVsetForFitting(nv.NVcenterSet):
         # a_file.close()
 
 
+def fit_full_odmr():
+
+    #define NV center:
+    nv_for_fit = NVsetForFitting()
+
+
 if __name__ == '__main__':
 
     import datetime
