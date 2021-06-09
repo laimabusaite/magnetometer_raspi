@@ -2,7 +2,6 @@
 from fit_odmr import *
 
 
-
 if __name__ == '__main__':
 
     import datetime
