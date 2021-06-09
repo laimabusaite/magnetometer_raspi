@@ -18,6 +18,7 @@ def import_data(filename):
     return df_crop
 
 def detect_peaks(x_data, y_data, debug=False):
+    #TODO handle exception
     x_data = np.array(x_data)
     y_data = np.array(y_data)
     #x, x0, amplitude, gamma, y0
