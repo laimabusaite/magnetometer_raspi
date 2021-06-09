@@ -115,12 +115,12 @@ if __name__ == '__main__':
     # filename = 'data/test_2920_650_16dBm_1024_ODMR.dat'
     # filename = 'full_scan1.dat'
     # filename = 'full_scan2.dat'
-    filename = 'full_scan_200.dat'
+    filename = 'full_scan_8.dat'
     dataframe = import_data(filename)
     print(dataframe)
 
-    plt.plot(dataframe['MW'], dataframe['ODMR'])
-    plt.show()
+#    plt.plot(dataframe['MW'], dataframe['ODMR'])
+ #   plt.show()
 
     # dataframe['ODMR_smooth'] = savgol_filter(dataframe['ODMR_norm'], 41, 2)
     dataframe['ODMR_base'] = savgol_filter(dataframe['ODMR_norm'], 95, 2)
@@ -137,10 +137,10 @@ if __name__ == '__main__':
                                                  fill_value="extrapolate")  # (peak_amplitudes_min[0], peak_amplitudes_min[-1]))#"#extrapolate")
     wavelet_min = interpolate_peaks_min(dataframe['MW'])
 
-    plt.plot(dataframe['MW'], dataframe['ODMR_norm'])
-    plt.plot(dataframe['MW'], dataframe['ODMR_base'])
-    plt.plot(dataframe['MW'], wavelet_min)
-    plt.show()
+  #  plt.plot(dataframe['MW'], dataframe['ODMR_norm'])
+   # plt.plot(dataframe['MW'], dataframe['ODMR_base'])
+    #plt.plot(dataframe['MW'], wavelet_min)
+    #plt.show()
 
     dataframe['ODMR_minus_base'] = (dataframe['ODMR_norm'] - wavelet_min)
     # plt.plot(dataframe['MW'], dataframe['ODMR_minus_base'])
@@ -166,10 +166,10 @@ if __name__ == '__main__':
     interpolate_peaks = interpolate.interp1d(peak_positions, peak_amplitudes, kind='linear', fill_value="extrapolate")
     wavelet = interpolate_peaks(dataframe['MW'])
 
-    plt.plot(dataframe['MW'], dataframe['ODMR_minus_base'])
-    plt.plot(dataframe['MW'], dataframe['ODMR_smooth'])
-    plt.plot(dataframe['MW'], wavelet)
-    plt.show()
+    #plt.plot(dataframe['MW'], dataframe['ODMR_minus_base'])
+    #plt.plot(dataframe['MW'], dataframe['ODMR_smooth'])
+    #plt.plot(dataframe['MW'], wavelet)
+    #plt.show()
 
     # min_distance_min = 0 #len(dataframe) / (max(dataframe['MW']) - min(dataframe['MW'])) * 2#25
     # # peaks_min, properties_min = find_peaks(dataframe['ODMR'], distance=min_distance)
@@ -198,9 +198,9 @@ if __name__ == '__main__':
 
     # dataframe['ODMR_unitary'] = (dataframe['ODMR_norm']-wavelet_min)/(wavelet-wavelet_min)
     dataframe['ODMR_unitary'] = dataframe['ODMR_minus_base'] / wavelet
-    plt.plot(dataframe['MW'], dataframe['ODMR_unitary'])
+    #plt.plot(dataframe['MW'], dataframe['ODMR_unitary'])
     dataframe['ODMR_unitary'] = savgol_filter(dataframe['ODMR_unitary'], 41, 2)
-    plt.plot(dataframe['MW'], dataframe['ODMR_unitary'])
+    #plt.plot(dataframe['MW'], dataframe['ODMR_unitary'])
     # plt.show()
 
     # plt.plot(dataframe['MW'], dataframe['ODMR_norm'])
@@ -267,16 +267,16 @@ if __name__ == '__main__':
 
     # plt.plot(df_crop['MW'], df_crop['ODMR_norm'], color='k', markersize=5, marker='o', linewidth=1)
     # plt.plot(df_crop['MW'][peaks], df_crop['ODMR_norm'][peaks], "x", label='exp peaks')
-    plt.plot(x, summodel.eval(params, x=x), 'g--')
-    plt.plot(x, fitResult.best_fit, 'g-')
-    save_filename = f"ODMR_fit_parameters{time.time()}.json" #f"ODMR_fit_parameters{datetime.datetime.now().isoformat()}.json" #'ODMR_fit_parameters.json' #
+    #plt.plot(x, summodel.eval(params, x=x), 'g--')
+    #plt.plot(x, fitResult.best_fit, 'g-')
+    save_filename = f"ODMR_fit_parameters.json" #f"ODMR_fit_parameters{datetime.datetime.now().isoformat()}.json" #'ODMR_fit_parameters.json' #
     print(save_filename)
     nv_for_fit.fit_odmr_lorentz(x, y, init_params, varyB=True, varyGlor=False, varyD=False,
                      varyMz=False, save_filename=save_filename)
     print(nv_for_fit.fitResultLorentz.fit_report())
     print(nv_for_fit.fitResultLorentz.best_values)
-    plt.plot(x, nv_for_fit.summodel.eval(nv_for_fit.params, x=x), 'r--')
-    plt.plot(x, nv_for_fit.fitResultLorentz.best_fit, 'r-')
+    #plt.plot(x, nv_for_fit.summodel.eval(nv_for_fit.params, x=x), 'r--')
+    #plt.plot(x, nv_for_fit.fitResultLorentz.best_fit, 'r-')
 
     # read parameters
     filename = save_filename #"ODMR_fit_parameters.json"
@@ -290,8 +290,8 @@ if __name__ == '__main__':
                                 varyMz=True, save_filename = save_filename)
     print(nv_for_fit.fitResultLorentz.fit_report())
     print(nv_for_fit.fitResultLorentz.best_values)
-    plt.plot(x, nv_for_fit.summodel.eval(nv_for_fit.params, x=x), 'k--')
-    plt.plot(x, nv_for_fit.fitResultLorentz.best_fit, 'k-')
+   # plt.plot(x, nv_for_fit.summodel.eval(nv_for_fit.params, x=x), 'k--')
+   # plt.plot(x, nv_for_fit.fitResultLorentz.best_fit, 'k-')
 
 
 
@@ -325,7 +325,7 @@ if __name__ == '__main__':
     # plt.plot(x, summodel_voigt.eval(params, x=x), 'b--')
     # plt.plot(x, fitResult_voigt.best_fit, 'b-')
 
-    plt.show()
+    #plt.show()
 
     # x = np.linspace(-100,100,1000)
     # # asym = asymetrical_voigt(x, 10, 1, 5, -0.4, 0.5)
