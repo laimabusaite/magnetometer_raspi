@@ -17,11 +17,23 @@ def import_data(filename):
     df_crop['ODMR_norm'] = (1 - df_crop['ODMR'] / max(df_crop['ODMR'])) / scale
     return df_crop
 
-def weighted_average(x, y):
-    yn = 2-2*(y-min(y))/(max(y)-min(y))
-    x_min = sum(yn*yn*x)
-    y_sum = sum(yn*yn)
-    return x_min/y_sum
+def detect_peaks_weighted(x_data, y_data, weight_max = 2.0, weight_order = 2):
+    """
+    Find peak position using weighted average
+    Parameters
+    ----------
+    x_data : array like
+    y_data : array like
+    weight_max : float = 2.0
+    weight_order : int = 2
+    """
+    x_data = np.array(x_data)
+    y_data = np.array(y_data)
+    y_weights = weight_max - weight_max * (y_data - min(y_data)) / (max(y_data) - min(y_data))
+    x_weighted_sum = sum(x_data * y_weights ** weight_order)
+    sum_weights = sum(y_weights ** weight_order)
+    x_peak = x_weighted_sum/sum_weights
+    return x_peak
 
 def detect_peaks(x_data, y_data, debug=False):
     #TODO handle exception
@@ -48,8 +60,10 @@ def detect_peaks(x_data, y_data, debug=False):
             print('Time:', time1 - time0)
             y_fitted = lorentz(x_data, popt[0], popt[1], popt[2], popt[3])
             plt.plot(x_data, y_data, color='k', markersize=5, marker='o', linewidth=1)
-            plt.plot(x_data, y_fitted)
-            plt.plot(peak_positions, peak_amplitudes, "x", label='exp peaks')
+            p = plt.plot(x_data, y_fitted)
+            col = p[0].get_color()
+            plt.plot(peak_positions, peak_amplitudes, "x", color=col, label='exp peaks')
+            # plt.show()
 
         return peak_positions, peak_amplitudes
 
@@ -136,7 +150,8 @@ def detect_peaks_cwt(x_data, y_data, widthMHz = np.array([5]), min_snr=1, debug=
 
 
 if __name__ == '__main__':
-    filename = 'data/test_2920_650_16dBm_1024_ODMR.dat'
+
+    filename = 'test_data/test_dev20.0_peak2611.0.dat'
     dataframe = import_data(filename)
     print(dataframe.head())
     peaks, amplitudes = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=True)
