@@ -210,7 +210,7 @@ def fit_full_odmr(x_data, y_data,
 
 
 if __name__ == '__main__':
-    filename = 'full_scan_200.dat'
+    filename = 'full_scan_rp_1.dat'
     dataframe = import_data(filename)
     print(dataframe)
 
