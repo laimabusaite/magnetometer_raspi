@@ -1,7 +1,28 @@
 import numpy as np
 import math
 from utilities import *
+import json
 
+def calculateInitalSystem(filename="ODMR_fit_parameters.json"):
+    # read parameters
+    a_file = open(filename, "r")
+    parameters = json.load(a_file)
+    D = parameters["D"]
+    Mz_array = np.array([parameters["Mz1"], parameters["Mz2"], parameters["Mz3"], parameters[
+        "Mz4"]])
+    B_lab = np.array([parameters["B_labx"], parameters["B_laby"], parameters[
+        "B_labz"]])
+
+    # NV center orientation in laboratory frame
+    # (100)
+    nv_center_set = NVcenterSet(D=D, Mz_array=Mz_array)
+    nv_center_set.setMagnetic(B_lab=B_lab)
+
+    frequencies0 = nv_center_set.four_frequencies(np.array([2000, 3500]), nv_center_set.B_lab)
+
+    A_inv = nv_center_set.calculateAinv(nv_center_set.B_lab)
+
+    return frequencies0, A_inv
 
 class NVcenter(object):
     def __init__(self,D=2870, Mz=0):
