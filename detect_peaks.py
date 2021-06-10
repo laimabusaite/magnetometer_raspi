@@ -17,26 +17,45 @@ def import_data(filename):
     df_crop['ODMR_norm'] = (1 - df_crop['ODMR'] / max(df_crop['ODMR'])) / scale
     return df_crop
 
-def detect_peaks_weighted(x_data, y_data, weight_max = 2.0, weight_order = 2):
+def detect_peaks_weighted(x_data, y_data, weight_order = 2, min_contrast = 0.001):
     """
     Find peak position using weighted average
     Parameters
     ----------
     x_data : array like
     y_data : array like
-    weight_max : float = 2.0
     weight_order : int = 2
+    min_contrast : float = 0.001 - minimum contrast (max-min)/max of the peak,
+    if contrast smaller than min_contrast => no peak found, return 0
     """
     x_data = np.array(x_data)
     y_data = np.array(y_data)
-    y_weights = weight_max - weight_max * (y_data - min(y_data)) / (max(y_data) - min(y_data))
-    x_weighted_sum = sum(x_data * y_weights ** weight_order)
-    sum_weights = sum(y_weights ** weight_order)
-    x_peak = x_weighted_sum/sum_weights
+    contrast = (max(y_data) - min(y_data))/max(y_data)
+    if contrast >= min_contrast:
+        y_weights = 1.0 - (y_data - min(y_data)) / (max(y_data) - min(y_data))
+        x_weighted_sum = sum(x_data * y_weights ** weight_order)
+        sum_weights = sum(y_weights ** weight_order)
+        x_peak = x_weighted_sum/sum_weights
+    else:
+        x_peak = 0
     return x_peak
 
 def detect_peaks(x_data, y_data, debug=False):
-    #TODO handle exception
+    """
+    Detect peak position with Lorentz fit.
+
+    Parameters
+    ----------
+    x_data
+    y_data
+    debug
+
+    Returns
+    -------
+    peak_positions, peak_amplitudes
+    If by fitting optimal parameters not found returns 0,0
+
+    """
     x_data = np.array(x_data)
     y_data = np.array(y_data)
     #x, x0, amplitude, gamma, y0
@@ -65,11 +84,14 @@ def detect_peaks(x_data, y_data, debug=False):
             plt.plot(peak_positions, peak_amplitudes, "x", color=col, label='exp peaks')
             # plt.show()
 
-        return peak_positions, peak_amplitudes
+
 
     except Exception as e:
+        peak_positions = 0
+        peak_amplitudes = 0
         print(e)
-        return np.array([0,0,0,0]), np.array([0,0,0,0])
+
+    return peak_positions, peak_amplitudes
 
 
 def detect_peaks_simple(x_data, y_data, height=None, debug=False):
