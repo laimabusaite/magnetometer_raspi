@@ -17,14 +17,14 @@ def import_data(filename):
     df_crop['ODMR_norm'] = (1 - df_crop['ODMR'] / max(df_crop['ODMR'])) / scale
     return df_crop
 
-def detect_peaks_weighted(x_data, y_data, weight_order = 2, min_contrast = 0.001):
+def detect_peaks_weighted(x_data, y_data, weight_order = 3, min_contrast = 0.001):
     """
     Find peak position using weighted average
     Parameters
     ----------
     x_data : array like
     y_data : array like
-    weight_order : int = 2
+    weight_order : int = 3
     min_contrast : float = 0.001 - minimum contrast (max-min)/max of the peak,
     if contrast smaller than min_contrast => no peak found, return 0
     """
