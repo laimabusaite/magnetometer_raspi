@@ -17,8 +17,45 @@ def import_data(filename):
     df_crop['ODMR_norm'] = (1 - df_crop['ODMR'] / max(df_crop['ODMR'])) / scale
     return df_crop
 
+def detect_peaks_weighted(x_data, y_data, weight_order = 3, min_contrast = 0.001):
+    """
+    Find peak position using weighted average
+    Parameters
+    ----------
+    x_data : array like
+    y_data : array like
+    weight_order : int = 3
+    min_contrast : float = 0.001 - minimum contrast (max-min)/max of the peak,
+    if contrast smaller than min_contrast => no peak found, return 0
+    """
+    x_data = np.array(x_data)
+    y_data = np.array(y_data)
+    contrast = (max(y_data) - min(y_data))/max(y_data)
+    if contrast >= min_contrast:
+        y_weights = 1.0 - (y_data - min(y_data)) / (max(y_data) - min(y_data))
+        x_weighted_sum = sum(x_data * y_weights ** weight_order)
+        sum_weights = sum(y_weights ** weight_order)
+        x_peak = x_weighted_sum/sum_weights
+    else:
+        x_peak = 0
+    return x_peak
+
 def detect_peaks(x_data, y_data, debug=False):
-    #TODO handle exception
+    """
+    Detect peak position with Lorentz fit.
+
+    Parameters
+    ----------
+    x_data
+    y_data
+    debug
+
+    Returns
+    -------
+    peak_positions, peak_amplitudes
+    If by fitting optimal parameters not found returns 0,0
+
+    """
     x_data = np.array(x_data)
     y_data = np.array(y_data)
     #x, x0, amplitude, gamma, y0
@@ -27,21 +64,32 @@ def detect_peaks(x_data, y_data, debug=False):
     y0_init = max(y_data)
     amplitude_init = min(y_data) - max(y_data)
     gamma_init = 5
-    popt, pconv = curve_fit(lorentz, x_data, y_data, p0=[x0_init, amplitude_init, gamma_init, y0_init])
-    time1 = time.time()
+    try:
+        popt, pconv = curve_fit(lorentz, x_data, y_data, p0=[x0_init, amplitude_init, gamma_init, y0_init])
+        time1 = time.time()
 
-    peak_positions = popt[0]
-    peak_amplitudes = lorentz(peak_positions, popt[0], popt[1], popt[2], popt[3])
+        peak_positions = popt[0]
+        peak_amplitudes = lorentz(peak_positions, popt[0], popt[1], popt[2], popt[3])
 
-    if debug:
-        import matplotlib.pyplot as plt
-        print('fitted peak Lorenz:')
-        print(popt)
-        print('Time:', time1 - time0)
-        y_fitted = lorentz(x_data, popt[0], popt[1], popt[2], popt[3])
-        plt.plot(x_data, y_data, color='k', markersize=5, marker='o', linewidth=1)
-        plt.plot(x_data, y_fitted)
-        plt.plot(peak_positions, peak_amplitudes, "x", label='exp peaks')
+
+        if debug:
+            import matplotlib.pyplot as plt
+            print('fitted peak Lorenz:')
+            print(popt)
+            print('Time:', time1 - time0)
+            y_fitted = lorentz(x_data, popt[0], popt[1], popt[2], popt[3])
+            plt.plot(x_data, y_data, color='k', markersize=5, marker='o', linewidth=1)
+            p = plt.plot(x_data, y_fitted)
+            col = p[0].get_color()
+            plt.plot(peak_positions, peak_amplitudes, "x", color=col, label='exp peaks')
+            # plt.show()
+
+
+
+    except Exception as e:
+        peak_positions = 0
+        peak_amplitudes = 0
+        print(e)
 
     return peak_positions, peak_amplitudes
 
@@ -124,7 +172,8 @@ def detect_peaks_cwt(x_data, y_data, widthMHz = np.array([5]), min_snr=1, debug=
 
 
 if __name__ == '__main__':
-    filename = 'data/test_2920_650_16dBm_1024_ODMR.dat'
+
+    filename = 'test_data/test_dev20.0_peak2611.0.dat'
     dataframe = import_data(filename)
     print(dataframe.head())
     peaks, amplitudes = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=True)

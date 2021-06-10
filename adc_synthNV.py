@@ -55,8 +55,15 @@ A_inv = nv_center_set.calculateAinv(nv_center_set.B_lab)
 
 spi = spidev.SpiDev()
 spi.open(1,2)
+spi.max_speed_hz = 115200
 
-GPIO.setmode(GPIO.BCM)
+#spi0 = spidev.SpiDev()
+#spi0.open(0,1)
+#spi0.max_speed_hz = 115200
+
+ser_uart = serial.Serial("/dev/ttyS0", 115200)
+
+GPIO.setmode(GPIO.BCM) # do we need this ?
 
 
 def signal_handler(sig, frame):
@@ -67,10 +74,27 @@ def signal_handler(sig, frame):
 
 
 def read_values(channel):
-    spi.max_speed_hz = 115200
     adc = spi.xfer2([1,(8+channel)<<4,0])
     data = ((adc[1]&3) << 8) + adc[2]
     return data
+
+
+def read_values_rp():
+    get_data = 1
+    while get_data:
+        received_data = ''
+        endcharacter = ''
+        while (endcharacter != b'\n'):
+            endcharacter = ser_uart.read()
+            received_data += str(endcharacter.decode('UTF-8'))
+
+        received_data = float(received_data) #print("{0:s}\n".format(received_data))
+        if ((received_data > 0.0) and (received_data < 2.0)):
+            get_data = 0
+        else:
+            print("Wrong UART data.\n")
+
+    return received_data
 
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -126,7 +150,7 @@ def write_file(x,y,s):
     timestamp = str(datetime.datetime.now())
     timestamp = timestamp.replace(":","-")
     timestamp = timestamp.replace(" ","_")
-    filename1="test_data/test_{0:s}_{1:s}.dat".format(s,timestamp)
+    filename1="test_data_rp/test_{0:s}_{1:s}.dat".format(s,timestamp)
 
     #print(filename1)
 
@@ -176,10 +200,11 @@ def scan_peak(f0, dev, step_size, avg1, avg2, level, noise):
             for j in range(averages2):
                 while True:
                     #print("{0:d}".format(j), end="", flush=True)
-                    odmr = (read_values(0))*4096/1000
-                    laser = (read_values(1))*4096/1000
+                    #odmr = (read_values(0))*4096/1000
+                    #laser = (read_values(1))*4096/1000
                     #print(odmr, laser)
-                    vmean[j]=odmr/laser
+                    #vmean[j]=odmr/laser
+                    vmean[j] = read_values_rp()
                     #print("{0:d}".format(j+1), end=" ", flush=True)
                     if (vmean[j]<level*(100+noise)/100) and (vmean[j]>level*(100-noise)/100):
                         vmean_sum1+=vmean[j]
@@ -236,23 +261,29 @@ def get_baseline(f0,points):
     vmean=[0 for i1 in range(points)]
     for i in range(points):
         #print("{0:d}".format(j), end="", flush=True)
-        odmr = (read_values(0))*4096/1000
-        laser = (read_values(1))*4096/1000
+        #odmr = (read_values(0))*4096/1000
+        #laser = (read_values(1))*4096/1000
         #print(odmr, laser)
-        vmean[i]=odmr/laser
+        #vmean[i]=odmr/laser
+        vmean[i] = read_values_rp()
         #print("{0:d}".format(j+1), end=" ", flush=True)
         vmean_sum1+=vmean[i]
 
     return vmean_sum1/points
 
 
-dev0=15
-step=1
+dev0=50
+step=2
 a1=4
 a2=1
 noise=10
 B1={}
-sets = 100
+sets = 10
+
+#for _ in range(10):
+#    print(read_values_rp())
+
+#input()
 
 print("\n#######################################################")
 
@@ -263,20 +294,20 @@ for i in range(sets):
     level = get_baseline(2900,10)
     #scan_peak(2417,dev0,step,a1,a2)
     #level = get_baseline(2900,10)
-#    peak2_MW, peak2_ODMR = scan_peak(2618,dev0,step,a1,a2,level,noise)
+#    peak2_MW, peak2_ODMR = scan_peak(2607,dev0,step,a1,a2,level,noise)
     #peak2_MW = DataFrame(peak2_MW, columns=['MW'])
     #peak2_ODMR = DataFrame(peak2_ODMR, columns=['ODMR'])
     #scan_peak(2805,dev0,step,a1,a2)
     #level = get_baseline(2900,10)
-#    peak4_MW, peak4_ODMR = scan_peak(2896,dev0,step,a1,a2,level,noise)
+#    peak4_MW, peak4_ODMR = scan_peak(2903,dev0,step,a1,a2,level,noise)
     #scan_peak(3113,dev0,step,a1,a2)
     #level = get_baseline(2900,10)
-#    peak6_MW, peak6_ODMR = scan_peak(3230,dev0,step,a1,a2,level,noise)
+#    peak6_MW, peak6_ODMR = scan_peak(3266,dev0,step,a1,a2,level,noise)
     #scan_peak(3323,dev0,step,a1,a2)
     #level = get_baseline(2900,10)
-#    peak8_MW, peak8_ODMR = scan_peak(3380,dev0,step,a1,a2,level,noise)
+#    peak8_MW, peak8_ODMR = scan_peak(3420,dev0,step,a1,a2,level,noise)
     #level = get_baseline(2905,10)
-    scan_peak(2905,600,0.2,32,4,level,10)
+    scan_peak(2905,600,1,64,1,level,10)
     t1 = time.time()
     #os.system("python3 plot1.py")
     #filenames = sorted(glob.glob("test_data/*.dat"))
