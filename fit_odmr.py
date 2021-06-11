@@ -102,7 +102,8 @@ class NVsetForFitting(nv.NVcenterSet):
 def normalize_data(x_data, y_data, debug=False):
     # normalized odmr
     y_norm = 1. - (y_data - min(y_data)) / (max(y_data) - min(y_data))
-    y_base = savgol_filter(y_norm, 95, 2)
+    # y_base = y_norm
+    y_base = savgol_filter(y_norm, 11, 2)
 
     min_distance_min = len(x_data) / (max(x_data) - min(x_data)) * 40
     peaks_min, properties_min = find_peaks(-y_base, distance=min_distance_min)
@@ -113,7 +114,8 @@ def normalize_data(x_data, y_data, debug=False):
                                                  fill_value="extrapolate")  # (peak_amplitudes_min[0], peak_amplitudes_min[-1]))#"#extrapolate")
     wavelet_min = interpolate_peaks_min(x_data)
 
-    y_smooth = savgol_filter(y_norm - wavelet_min, 41, 2)
+    # y_smooth = y_norm - wavelet_min
+    y_smooth = savgol_filter(y_norm - wavelet_min, 11, 2)
 
     min_distance = len(x_data) / (max(x_data) - min(x_data)) * 50
     height = 0.05  # (max(-dataframe['ODMR']) - min(-dataframe['ODMR'])) * 0.1
@@ -141,6 +143,7 @@ def normalize_data(x_data, y_data, debug=False):
         plt.plot(x_data, wavelet_min)
 
         plt.figure(2)
+        plt.plot(x_data, y_norm-wavelet_min)
         plt.plot(x_data, y_smooth)
         plt.plot(x_data, wavelet)
 
@@ -201,6 +204,8 @@ def fit_full_odmr(x_data, y_data,
 
     nv_for_fit.fit_odmr_lorentz(x_data, y_unitary, init_params, varyB=True, varyGlor=True, varyD=True,
                                 varyMz=True, save_filename=save_filename)
+    print('Result')
+    print(nv_for_fit.fitResultLorentz.best_values)
     if debug:
         print(nv_for_fit.fitResultLorentz.fit_report())
         print(nv_for_fit.fitResultLorentz.best_values)
@@ -217,8 +222,15 @@ if __name__ == '__main__':
     x_data = dataframe['MW']
     y_data = dataframe['ODMR']
 
-    init_params = {'B_labx': 169.12, 'B_laby': 87.71, 'B_labz': 40.39,
+    B = 210
+    theta = 80
+    phi = 20
+    Blab = CartesianVector(B, theta, phi)
+    print(Blab)
+
+    init_params = {'B_labx': Blab[0], 'B_laby': Blab[1], 'B_labz': Blab[2],
                    'glor': 4.44, 'D': 2867.61, 'Mz1': 0,
                    'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
+
     save_filename = "ODMR_fit_parameters.json"
-    fit_full_odmr(x_data, y_data, init_params=init_params, save_filename=save_filename, debug=True)
+    fit_full_odmr(x_data, y_data, init_params=init_params, save_filename=save_filename, debug=False)
