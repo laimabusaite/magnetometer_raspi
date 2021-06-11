@@ -227,10 +227,8 @@ if __name__ == '__main__':
     phi = 20
     Blab = CartesianVector(B, theta, phi)
     print(Blab)
-
     init_params = {'B_labx': Blab[0], 'B_laby': Blab[1], 'B_labz': Blab[2],
                    'glor': 4.44, 'D': 2867.61, 'Mz1': 0,
                    'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
-
     save_filename = "ODMR_fit_parameters.json"
     fit_full_odmr(x_data, y_data, init_params=init_params, save_filename=save_filename, debug=False)
