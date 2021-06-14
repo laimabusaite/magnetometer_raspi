@@ -157,7 +157,7 @@ def normalize_data(x_data, y_data, debug=False):
 
 def fit_full_odmr(x_data, y_data,
                   init_params={'B_labx': 169.12, 'B_laby': 87.71, 'B_labz': 40.39, 'glor': 4.44, 'D': 2867.61, 'Mz1': 0,
-                               'Mz2': 0, 'Mz3': 0, 'Mz4': 0},
+                               'Mz2': 0, 'Mz3': 0, 'Mz4': 0}, save=True,
                   save_filename="ODMR_fit_parameters.json", debug=False):
     '''
     x_data and y_data:  array like
@@ -203,7 +203,7 @@ def fit_full_odmr(x_data, y_data,
     print(init_params)
 
     nv_for_fit.fit_odmr_lorentz(x_data, y_unitary, init_params, varyB=True, varyGlor=True, varyD=True,
-                                varyMz=True, save_filename=save_filename)
+                                varyMz=True, save_filename=save_filename, save=save)
     print('Result')
     print(nv_for_fit.fitResultLorentz.best_values)
     if debug:
@@ -212,6 +212,8 @@ def fit_full_odmr(x_data, y_data,
         plt.plot(x_data, nv_for_fit.summodel.eval(nv_for_fit.params, x=x_data), 'k--')
         plt.plot(x_data, nv_for_fit.fitResultLorentz.best_fit, 'k-')
         plt.show()
+
+    return nv_for_fit.fitResultLorentz.best_values
 
 
 if __name__ == '__main__':
@@ -231,4 +233,4 @@ if __name__ == '__main__':
                    'glor': 4.44, 'D': 2867.61, 'Mz1': 0,
                    'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
     save_filename = "ODMR_fit_parameters.json"
-    fit_full_odmr(x_data, y_data, init_params=init_params, save_filename=save_filename, debug=False)
+    fit_full_odmr(x_data, y_data, init_params=init_params, save_filename=save_filename, debug=True)

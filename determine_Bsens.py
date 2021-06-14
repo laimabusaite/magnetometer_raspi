@@ -44,11 +44,13 @@ if __name__ == '__main__':
 
     frequencies0 = nv_center_set.four_frequencies(np.array([2000, 3500]), nv_center_set.B_lab)
 
-    # print(frequencies0)
+    print('frequencies0')
+    print(frequencies0)
 
     A_inv = nv_center_set.calculateAinv(nv_center_set.B_lab)
 
-    # print(A_inv)
+    print('A_inv')
+    print(A_inv)
 
     # filename = 'data/test_2920_650_16dBm_1024_ODMR.dat'
     # filenames = sorted(glob.glob("test_data/*.dat"))
