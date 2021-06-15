@@ -70,9 +70,15 @@ if __name__ == '__main__':
 
     # frequency range
     omega = np.arange(2000, 3800, 0.4)
-    all_angles = np.arange(0,360,1)
+    all_angles = np.arange(0,360,5)
     # angle_list = sorted(random.choices(all_angles, k=360))
     axis_list = ['x', 'y', 'z']
+
+    axis_box = np.eye(3)
+    axis_diamond = rotate(axis_box, theta=0, phi=20, alpha=0)
+    print('axis_diamond')
+    print(axis_diamond)
+    print(rotate(axis_diamond, theta=20, phi=0, alpha=0))
 
 
     # measurement process
@@ -91,7 +97,7 @@ if __name__ == '__main__':
 
             a_temp = np.array([])
             print(a_temp)
-            k = 60 #random.randint(3, 20)
+            k = random.randint(3, 20)
             angle_list = sorted(random.choices(all_angles, k=k))
             B_set_list_temp = np.array([])
             # while True:
@@ -113,10 +119,10 @@ if __name__ == '__main__':
                     print('wrong axis')
 
                 Bextra_rot = rotate(Bextra, theta=theta, phi=phi, alpha=alpha)
-                B_bias_box = rotate(Bbias, 0, 20, 0)
+                B_bias_box = rotate(Bbias, 0, 0, 0)
                 B_lab = B_bias_box + Bextra_rot
                 print('B_lab:', B_lab)
-                odmr = generate_noisy_signal(omega=omega, B_lab=B_lab, noise_std=0.0)
+                odmr = generate_noisy_signal(omega=omega, B_lab=B_lab, noise_std=0.03)
                 # odmr_array[idx_axis, idx_angle, :] = odmr[:]
                 a_temp = np.append(a_temp, odmr)
                 a_temp = a_temp.reshape((-1, len(odmr)))
@@ -149,11 +155,11 @@ if __name__ == '__main__':
         Mz_fitted_list = np.zeros((len(b_temp[idx_axis]), 4))
         for idx, odmr in enumerate(b_temp[idx_axis]):
             # save_filename = f"ODMR_fit_parameters{idx+1}.json"
-            # parameters = fit_full_odmr(omega, odmr, init_params=init_params, save=False, debug=False)
-            # Blab_fitted_list[idx] = np.array([parameters["B_labx"], parameters["B_laby"], parameters["B_labz"]])
-            # Mz_fitted_list[idx] = np.array([parameters['Mz1'], parameters['Mz2'], parameters['Mz3'], parameters['Mz4']])
+            parameters = fit_full_odmr(omega, odmr, init_params=init_params, save=False, debug=False)
+            Blab_fitted_list[idx] = np.array([parameters["B_labx"], parameters["B_laby"], parameters["B_labz"]])
+            Mz_fitted_list[idx] = np.array([parameters['Mz1'], parameters['Mz2'], parameters['Mz3'], parameters['Mz4']])
 
-            Blab_fitted_list[idx] = rotate(B_set_list[idx_axis][idx], theta=0, phi=0, alpha=0)
+            # Blab_fitted_list[idx] = rotate(B_set_list[idx_axis][idx], theta=0, phi=0, alpha=0)
 
 
         #fit magnetic field values to circle
@@ -212,7 +218,7 @@ if __name__ == '__main__':
     B_avg = np.nanmean(B_calibrated, axis=0)
     print('B_avg')
     print(B_avg)
-    B_calibrated_rotated = rotate(B_avg, 0, -20, 0)
+    B_calibrated_rotated = rotate(B_avg, 0, 0, 0)
     print(B_calibrated_rotated)
 
     plt.show()
