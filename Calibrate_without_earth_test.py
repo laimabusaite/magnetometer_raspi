@@ -1,3 +1,5 @@
+import random
+
 import numpy
 import numpy as np
 import NVcenter as nv
@@ -68,17 +70,34 @@ if __name__ == '__main__':
 
     # frequency range
     omega = np.arange(2000, 3800, 0.4)
+    all_angles = np.arange(0,360,1)
+    # angle_list = sorted(random.choices(all_angles, k=360))
+    axis_list = ['x', 'y', 'z']
 
-    while True:
+
+    # measurement process
+    idx_axis = 0
+    # while True:
+    b_temp = []
+    B_set_list =  []
+    for axis in axis_list:
         theta = 0
         phi = 0
         alpha = 0
         try:
             print('Choose axis to rotate around: x, y, z')
-            axis = input()
-            while True:
+            # axis = input()
+            idx_angle = 0
+
+            a_temp = np.array([])
+            print(a_temp)
+            k = 60 #random.randint(3, 20)
+            angle_list = sorted(random.choices(all_angles, k=k))
+            B_set_list_temp = np.array([])
+            # while True:
+            for a in angle_list:
                 print('Enter angle:')
-                my_input = input()
+                my_input = a #input()
                 if my_input == 'q':
                     break
                 angle = float(my_input)
@@ -94,111 +113,108 @@ if __name__ == '__main__':
                     print('wrong axis')
 
                 Bextra_rot = rotate(Bextra, theta=theta, phi=phi, alpha=alpha)
-                B_lab = Bbias + Bextra_rot
+                B_bias_box = rotate(Bbias, 0, 20, 0)
+                B_lab = B_bias_box + Bextra_rot
                 print('B_lab:', B_lab)
-                odmr = generate_noisy_signal(omega=omega, B_lab=B_lab, noise_std=0.01)
+                odmr = generate_noisy_signal(omega=omega, B_lab=B_lab, noise_std=0.0)
+                # odmr_array[idx_axis, idx_angle, :] = odmr[:]
+                a_temp = np.append(a_temp, odmr)
+                a_temp = a_temp.reshape((-1, len(odmr)))
 
+                B_set_list_temp = np.append(B_set_list_temp, B_lab)
+                B_set_list_temp = B_set_list_temp.reshape(-1, len(B_lab))
 
+                idx_angle += 1
+                # print('a_temp', a_temp.shape)
+                # print(a_temp)
 
+            b_temp.append(a_temp)
+            B_set_list.append(B_set_list_temp)
+
+            # print('b_temp')
+            # print(b_temp)
+            idx_axis += 1
         except KeyboardInterrupt:
             break
 
 
+    print(b_temp[0])
+    print(b_temp[1])
+
+    # Fit ODMR to get magnetic field values
+    B_calibrated = np.zeros((len(axis_list), 3))
+    for idx_axis, axis in enumerate(axis_list):
+        print('axis')
+        Blab_fitted_list = np.zeros((len(b_temp[idx_axis]), 3))
+        Mz_fitted_list = np.zeros((len(b_temp[idx_axis]), 4))
+        for idx, odmr in enumerate(b_temp[idx_axis]):
+            # save_filename = f"ODMR_fit_parameters{idx+1}.json"
+            # parameters = fit_full_odmr(omega, odmr, init_params=init_params, save=False, debug=False)
+            # Blab_fitted_list[idx] = np.array([parameters["B_labx"], parameters["B_laby"], parameters["B_labz"]])
+            # Mz_fitted_list[idx] = np.array([parameters['Mz1'], parameters['Mz2'], parameters['Mz3'], parameters['Mz4']])
+
+            Blab_fitted_list[idx] = rotate(B_set_list[idx_axis][idx], theta=0, phi=0, alpha=0)
+
+
+        #fit magnetic field values to circle
+        # coordinates of the barycenter
+        idxs_list = [0, 1, 2]
+        idxs_list.remove(idx_axis)
+        print(idxs_list)
+        x = Blab_fitted_list[:, idxs_list[0]]
+        y = Blab_fitted_list[:, idxs_list[1]]
+        x_m = np.mean(x)
+        y_m = np.mean(y)
+
+        def calc_R(xc, yc):
+            """ calculate the distance of each 2D points from the center (xc, yc) """
+            return np.sqrt((x - xc) ** 2 + (y - yc) ** 2)
+
+        def f_2(c):
+            """ calculate the algebraic distance between the 2D points and the mean circle centered at c=(xc, yc) """
+            Ri = calc_R(*c)
+            return Ri - Ri.mean()
+
+        # initial guess for parameters
+        R_m = calc_R(x_m, y_m).mean()
+        beta0 = [x_m, y_m, R_m]
+
+        center_estimate = x_m, y_m
+        center_2, ier = optimize.leastsq(f_2, center_estimate)
+
+        xc_2, yc_2 = center_2
+        B_calibrated[idx_axis, idxs_list[0]] = xc_2
+        B_calibrated[idx_axis, idxs_list[1]] = yc_2
+        print(xc_2, yc_2)
+        Ri_2 = calc_R(xc_2, yc_2)
+        R_2 = Ri_2.mean()
+        residu_2 = sum((Ri_2 - R_2) ** 2)
+        residu2_2 = sum((Ri_2 ** 2 - R_2 ** 2) ** 2)
+
+        theta_fit = np.linspace(-np.pi, np.pi, 180)
+        x_fit2 = xc_2 + R_2 * np.cos(theta_fit)
+        y_fit2 = yc_2 + R_2 * np.sin(theta_fit)
 
 
 
-    #
-    #
-    # # B_init = np.array([190.30416375, 76.05192834, 37.91572616])
-    # # frequencies0 = np.array([2610.1786052321295, 2902.430583691413, 3260.8360334550603, 3413.1714015015773])
-    # # A_inv = np.array([[-0.09885543, -0.11814168, 0.20521331, 0.14720897],
-    # #                   [-0.166928, 0.24067813, -0.11076892, 0.11649146],
-    # #                   [0.2325539, 0.16654134, 0.05205758, 0.03018854]])
-    #
-    # # phi_list = np.arange(0,360,90)
-    # phi_list = np.array([0, 15, 60, 150])
-    # theta_list = numpy.zeros(len(phi_list))
-    # fig = plt.figure()
-    #
-    # Blab_list = np.zeros((len(phi_list),3))
-    # Blab_fitted_list = np.zeros((len(phi_list), 3))
-    # Mz_fitted_list = np.zeros((len(phi_list), 4))
-    # for idx, theta in enumerate(theta_list):
-    #     phi = phi_list[idx]
-    #     Bextra_rot = rotate(Bextra, theta=theta, phi=phi)
-    #     print('Bextra_rot:', Bextra_rot, np.linalg.norm(Bextra_rot))
-    #     B_lab = Bbias + Bextra_rot
-    #     print('B_lab:', B_lab)
-    #     Blab_list[idx] = B_lab
-    #
-    #     odmr = generate_noisy_signal(omega=omega, B_lab=B_lab, noise_std=0.01)
-    #
-    #     # peak_positions, peak_amplitudes = detect_peaks_simple(omega, odmr, height=0.4)
-    #     # print('peak_positions:', peak_positions)
-    #     # delta_fr = frequencies0 - peak_positions[1::2]
-    #     # B_from_peak = B_init + deltaB_from_deltaFrequencies(A_inv, delta_fr)
-    #     # print('B_from_peak:', B_from_peak)
-    #     # init_params['B_labx'] = B_from_peak[0]
-    #     # init_params['B_laby'] = B_from_peak[1]
-    #     # init_params['B_laby'] = B_from_peak[2]
-    #
-    #     save_filename = f"ODMR_fit_parameters{idx+1}.json"
-    #     parameters = fit_full_odmr(omega, odmr, init_params=init_params, save_filename=save_filename, debug=False)
-    #     Blab_fitted_list[idx] = np.array([parameters["B_labx"], parameters["B_laby"], parameters[
-    #     "B_labz"]])
-    #     Mz_fitted_list[idx] = np.array([parameters['Mz1'], parameters['Mz2'], parameters['Mz3'], parameters['Mz4']])
-    #
-    # print('Bbias:', Bbias)
-    # print('Bextra:', Bextra, np.linalg.norm(Bextra))
-    # print((Blab_list[0] + Blab_list[1]) / 2.0)
-    # print((Blab_list[0] + Blab_list[2]) / 2.0)
-    #
-    # print(np.mean(Blab_list))
-    #
-    # plt.scatter(Blab_list[:, 0], Blab_list[:, 1])
-    # plt.scatter(Blab_fitted_list[:, 0], Blab_fitted_list[:, 1])
-    #
-    #
-    # # coordinates of the barycenter
-    # x = Blab_fitted_list[:, 0]
-    # y = Blab_fitted_list[:, 1]
-    # x_m = np.mean(x)
-    # y_m = np.mean(y)
-    #
-    #
-    #
-    # def calc_R(xc, yc):
-    #     """ calculate the distance of each 2D points from the center (xc, yc) """
-    #     return np.sqrt((x - xc) ** 2 + (y - yc) ** 2)
-    #
-    # def f_2(c):
-    #     """ calculate the algebraic distance between the 2D points and the mean circle centered at c=(xc, yc) """
-    #     Ri = calc_R(*c)
-    #     return Ri - Ri.mean()
-    #
-    # # initial guess for parameters
-    # R_m = calc_R(x_m, y_m).mean()
-    # beta0 = [x_m, y_m, R_m]
-    #
-    # center_estimate = x_m, y_m
-    # center_2, ier = optimize.leastsq(f_2, center_estimate)
-    #
-    # xc_2, yc_2 = center_2
-    # print(xc_2, yc_2)
-    # Ri_2 = calc_R(xc_2, yc_2)
-    # R_2 = Ri_2.mean()
-    # residu_2 = sum((Ri_2 - R_2) ** 2)
-    # residu2_2 = sum((Ri_2 ** 2 - R_2 ** 2) ** 2)
-    # # ncalls_2 = f_2.ncalls
-    #
-    # # f = plt.figure(facecolor='white')  # figsize=(7, 5.4), dpi=72,
-    # plt.axis('equal')
-    #
-    # theta_fit = np.linspace(-np.pi, np.pi, 180)
-    #
-    #
-    # x_fit2 = xc_2 + R_2 * np.cos(theta_fit)
-    # y_fit2 = yc_2 + R_2 * np.sin(theta_fit)
-    # plt.plot(x_fit2, y_fit2, 'k--', label='', lw=2)
-    #
-    # plt.show()
+        plt.figure()
+        plt.scatter(Blab_fitted_list[:, idxs_list[0]], Blab_fitted_list[:, idxs_list[1]])
+        plt.axis('equal')
+        plt.plot(x_fit2, y_fit2, 'k--', label='', lw=2)
+
+    print('B_calibrated')
+    print(B_calibrated)
+    print('B_bias')
+    print(Bbias)
+    print('B_calibrated_rotated')
+    B_calibrated[B_calibrated == 0] = np.nan
+    print(B_calibrated)
+    B_avg = np.nanmean(B_calibrated, axis=0)
+    print('B_avg')
+    print(B_avg)
+    B_calibrated_rotated = rotate(B_avg, 0, -20, 0)
+    print(B_calibrated_rotated)
+
+    plt.show()
+
+
