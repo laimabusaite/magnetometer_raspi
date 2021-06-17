@@ -98,7 +98,7 @@ if __name__ == '__main__':
             a_temp = np.array([])
             print(a_temp)
             k = random.randint(3, 20)
-            angle_list = sorted(random.choices(all_angles, k=k))
+            angle_list = all_angles #sorted(random.choices(all_angles, k=k))
             B_set_list_temp = np.array([])
             # while True:
             for a in angle_list:
@@ -111,18 +111,20 @@ if __name__ == '__main__':
 
                 if axis == 'x':
                     alpha = angle
+                    phi = 45 #0
                 elif axis == 'y':
                     theta = angle
+                    phi = 45 #0
                 elif axis == 'z':
                     phi = angle
                 else:
                     print('wrong axis')
 
                 Bextra_rot = rotate(Bextra, theta=theta, phi=phi, alpha=alpha)
-                B_bias_box = rotate(Bbias, 0, 0, 0)
+                B_bias_box = rotate(Bbias, 0, 45, 0)
                 B_lab = B_bias_box + Bextra_rot
                 print('B_lab:', B_lab)
-                odmr = generate_noisy_signal(omega=omega, B_lab=B_lab, noise_std=0.03)
+                odmr = generate_noisy_signal(omega=omega, B_lab=B_lab, noise_std=0.00)
                 # odmr_array[idx_axis, idx_angle, :] = odmr[:]
                 a_temp = np.append(a_temp, odmr)
                 a_temp = a_temp.reshape((-1, len(odmr)))
@@ -155,11 +157,11 @@ if __name__ == '__main__':
         Mz_fitted_list = np.zeros((len(b_temp[idx_axis]), 4))
         for idx, odmr in enumerate(b_temp[idx_axis]):
             # save_filename = f"ODMR_fit_parameters{idx+1}.json"
-            parameters = fit_full_odmr(omega, odmr, init_params=init_params, save=False, debug=False)
-            Blab_fitted_list[idx] = np.array([parameters["B_labx"], parameters["B_laby"], parameters["B_labz"]])
-            Mz_fitted_list[idx] = np.array([parameters['Mz1'], parameters['Mz2'], parameters['Mz3'], parameters['Mz4']])
+            # parameters = fit_full_odmr(omega, odmr, init_params=init_params, save=False, debug=False)
+            # Blab_fitted_list[idx] = np.array([parameters["B_labx"], parameters["B_laby"], parameters["B_labz"]])
+            # Mz_fitted_list[idx] = np.array([parameters['Mz1'], parameters['Mz2'], parameters['Mz3'], parameters['Mz4']])
 
-            # Blab_fitted_list[idx] = rotate(B_set_list[idx_axis][idx], theta=0, phi=0, alpha=0)
+            Blab_fitted_list[idx] = rotate(B_set_list[idx_axis][idx], theta=0, phi=-45, alpha=0)
 
 
         #fit magnetic field values to circle
@@ -181,12 +183,16 @@ if __name__ == '__main__':
             Ri = calc_R(*c)
             return Ri - Ri.mean()
 
+
+
         # initial guess for parameters
         R_m = calc_R(x_m, y_m).mean()
         beta0 = [x_m, y_m, R_m]
 
         center_estimate = x_m, y_m
         center_2, ier = optimize.leastsq(f_2, center_estimate)
+
+
 
         xc_2, yc_2 = center_2
         B_calibrated[idx_axis, idxs_list[0]] = xc_2
@@ -202,11 +208,43 @@ if __name__ == '__main__':
         y_fit2 = yc_2 + R_2 * np.sin(theta_fit)
 
 
+        def calc_R_ellipse(xc, yc, a, b):
+            """ calculate the distance of each 2D points from the center (xc, yc) """
+            return np.sqrt((x - xc) ** 2 / a ** 2 + (y - yc) ** 2 / b ** 2)
+
+        def f_2_ellipse(c):
+            """ calculate the algebraic distance between the 2D points and the mean circle centered at c=(xc, yc) """
+            Ri = calc_R_ellipse(*c)
+            return Ri - Ri.mean()
+
+        center_2_ellipse, ier = optimize.leastsq(f_2_ellipse, center_estimate)
+        xc_2_ellipse, yc_2_ellipse, a_ellipse, b_ellipse = center_2_ellipse
+        x_fit2_ellipse = xc_2_ellipse + R_2 * np.cos(theta_fit)
+        y_fit2_ellipse = yc_2_ellipse + R_2 * np.sin(theta_fit)
 
         plt.figure()
+        plt.title(f'Rotate around {axis}-axis')
         plt.scatter(Blab_fitted_list[:, idxs_list[0]], Blab_fitted_list[:, idxs_list[1]])
         plt.axis('equal')
         plt.plot(x_fit2, y_fit2, 'k--', label='', lw=2)
+        plt.scatter(xc_2, yc_2)
+        plt.annotate(f'({xc_2:.2f},{yc_2:.2f})', center_2)
+        plt.xlabel(f'B{axis_list[idxs_list[0]]}, G')
+        plt.ylabel(f'B{axis_list[idxs_list[1]]}, G')
+
+        plt.figure()
+        plt.title(f'Rotate around {axis}-axis')
+        plt.scatter(Blab_fitted_list[:, idxs_list[0]], Blab_fitted_list[:, idx_axis])
+        plt.axis('equal')
+        plt.xlabel(f'B{axis_list[idxs_list[0]]}, G')
+        plt.ylabel(f'B{axis_list[idx_axis]}, G')
+
+        plt.figure()
+        plt.title(f'Rotate around {axis}-axis')
+        plt.scatter(Blab_fitted_list[:, idxs_list[1]], Blab_fitted_list[:, idx_axis])
+        plt.axis('equal')
+        plt.xlabel(f'B{axis_list[idxs_list[1]]}, G')
+        plt.ylabel(f'B{axis_list[idx_axis]}, G')
 
     print('B_calibrated')
     print(B_calibrated)
@@ -218,7 +256,7 @@ if __name__ == '__main__':
     B_avg = np.nanmean(B_calibrated, axis=0)
     print('B_avg')
     print(B_avg)
-    B_calibrated_rotated = rotate(B_avg, 0, 0, 0)
+    B_calibrated_rotated = rotate(B_avg, 0, -45, 0)
     print(B_calibrated_rotated)
 
     plt.show()
