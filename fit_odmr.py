@@ -202,7 +202,7 @@ def fit_full_odmr(x_data, y_data,
     print('Second iteration: vary all \n init:')
     print(init_params)
 
-    nv_for_fit.fit_odmr_lorentz(x_data, y_unitary, init_params, varyB=True, varyGlor=True, varyD=True,
+    nv_for_fit.fit_odmr_lorentz(x_data, y_unitary, init_params, varyB=True, varyGlor=True, varyD=False,
                                 varyMz=True, save_filename=save_filename, save=save)
     print('Result')
     print(nv_for_fit.fitResultLorentz.best_values)
