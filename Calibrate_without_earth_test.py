@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
     # frequency range
     omega = np.arange(2000, 3800, 0.4)
-    all_angles = np.arange(0,360,5)
+    all_angles = np.arange(0, 360, 5)
     # angle_list = sorted(random.choices(all_angles, k=360))
     axis_list = ['x', 'y', 'z']
     #
@@ -82,20 +82,18 @@ if __name__ == '__main__':
     # print(rotate(axis_diamond, theta=20, phi=0, alpha=0))
 
     alpha_tilted = 0
-    phi_tilted = 0
-    theta_tilted = 45
-
+    phi_tilted = 45
+    theta_tilted = 0
 
     alpha_rotate_B = 0
     phi_rotate_B = 0
     theta_rotate_B = 0
 
-
     # measurement process
     idx_axis = 0
     # while True:
     b_temp = []
-    B_set_list =  []
+    B_set_list = []
     for axis in axis_list:
         theta = 0
         phi = 0
@@ -108,12 +106,12 @@ if __name__ == '__main__':
             a_temp = np.array([])
             print(a_temp)
             k = random.randint(3, 20)
-            angle_list = all_angles #sorted(random.choices(all_angles, k=k))
+            angle_list = all_angles  # sorted(random.choices(all_angles, k=k))
             B_set_list_temp = np.array([])
             # while True:
             for a in angle_list:
                 print('Enter angle:')
-                my_input = a #input()
+                my_input = a  # input()
                 if my_input == 'q':
                     break
                 angle = float(my_input)
@@ -159,7 +157,6 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             break
 
-
     print(b_temp[0])
     print(b_temp[1])
 
@@ -175,10 +172,10 @@ if __name__ == '__main__':
             # Blab_fitted_list[idx] = np.array([parameters["B_labx"], parameters["B_laby"], parameters["B_labz"]])
             # Mz_fitted_list[idx] = np.array([parameters['Mz1'], parameters['Mz2'], parameters['Mz3'], parameters['Mz4']])
 
-            Blab_fitted_list[idx] = rotate(B_set_list[idx_axis][idx], theta=theta_rotate_B, phi=phi_rotate_B, alpha=alpha_rotate_B)
+            Blab_fitted_list[idx] = rotate(B_set_list[idx_axis][idx], theta=theta_rotate_B, phi=phi_rotate_B,
+                                           alpha=alpha_rotate_B)
 
-
-        #fit magnetic field values to circle
+        # fit magnetic field values to circle
         # coordinates of the barycenter
         idxs_list = [0, 1, 2]
         idxs_list.remove(idx_axis)
@@ -188,15 +185,16 @@ if __name__ == '__main__':
         x_m = np.mean(x)
         y_m = np.mean(y)
 
+
         def calc_R(xc, yc):
             """ calculate the distance of each 2D points from the center (xc, yc) """
             return np.sqrt((x - xc) ** 2 + (y - yc) ** 2)
+
 
         def f_2(c):
             """ calculate the algebraic distance between the 2D points and the mean circle centered at c=(xc, yc) """
             Ri = calc_R(*c)
             return Ri - Ri.mean()
-
 
 
         # initial guess for parameters
@@ -205,8 +203,6 @@ if __name__ == '__main__':
 
         center_estimate = x_m, y_m
         center_2, ier = optimize.leastsq(f_2, center_estimate)
-
-
 
         xc_2, yc_2 = center_2
         B_calibrated[idx_axis, idxs_list[0]] = xc_2
@@ -221,16 +217,18 @@ if __name__ == '__main__':
         x_fit2 = xc_2 + R_2 * np.cos(theta_fit)
         y_fit2 = yc_2 + R_2 * np.sin(theta_fit)
 
+
         # theta = np.linspace(0, 360, 360)
         def calc_R_ellipse(xc, yc, a, b):
             """ calculate the distance of each 2D points from the center (xc, yc) """
             return np.sqrt((x - xc) ** 2 / a ** 2 + (y - yc) ** 2 / b ** 2)
             # return a * b / np.sqrt((x - xc) ** 2 + (y - yc) ** 2)
 
+
         def f_2_ellipse(c):
             """ calculate the algebraic distance between the 2D points and the mean circle centered at c=(xc, yc) """
             Ri = calc_R_ellipse(*c)
-            return Ri - 1 #Ri.mean()
+            return Ri - 1  # Ri.mean()
 
 
         center_estimate_ellipse = x_m, y_m, max(x - x_m), max(y - y_m)
@@ -243,7 +241,6 @@ if __name__ == '__main__':
         print('center_2_ellipse')
         print(center_2_ellipse, R_2_ellipse)
 
-
         plt.figure()
         plt.title(f'Rotate around {axis}-axis')
         plt.scatter(Blab_fitted_list[:, idxs_list[0]], Blab_fitted_list[:, idxs_list[1]])
@@ -251,25 +248,31 @@ if __name__ == '__main__':
         plt.plot(x_fit2, y_fit2, 'k--', label='', lw=2)
         plt.scatter(xc_2, yc_2)
         plt.annotate(f'({xc_2:.2f},{yc_2:.2f})', center_2)
-        plt.plot(x_fit2_ellipse, y_fit2_ellipse, 'r--', label=f'{xc_2_ellipse:.2f},{yc_2_ellipse:.2f},{a_ellipse:.2f}, {b_ellipse:.2f}, {a_ellipse/b_ellipse:.2f}, {b_ellipse/a_ellipse:.2f}', lw=2)
+        plt.plot(x_fit2_ellipse, y_fit2_ellipse, 'r--',
+                 label=f'{xc_2_ellipse:.2f},{yc_2_ellipse:.2f},{a_ellipse:.2f}, {b_ellipse:.2f}, {a_ellipse / b_ellipse:.2f}, {b_ellipse / a_ellipse:.2f}',
+                 lw=2)
         plt.scatter(xc_2_ellipse, yc_2_ellipse)
         # plt.annotate(f'({xc_2_ellipse:.2f},{yc_2_ellipse:.2f},{a_ellipse:.2f},{b_ellipse:.2f})', (xc_2_ellipse, yc_2_ellipse))
         plt.xlabel(f'B{axis_list[idxs_list[0]]}, G')
         plt.ylabel(f'B{axis_list[idxs_list[1]]}, G')
         plt.legend()
 
-
-
-        #second plane
+        # second plane
         x = Blab_fitted_list[:, idxs_list[0]]
         y = Blab_fitted_list[:, idx_axis]
-        #fit linear
+
+
+        # fit linear
         def calc_linear(slope, intercept):
             return slope * x + intercept
+
+
         def f_linear(c):
             y_2 = calc_linear(*c)
-            return y-y_2
-        linear_estimate = (max(y) - min(y))/(max(x)-min(x)), 0
+            return y - y_2
+
+
+        linear_estimate = (max(y) - min(y)) / (max(x) - min(x)), 0
         linear_params, ier = optimize.leastsq(f_linear, linear_estimate)
         slope_lin, intercept_lin = linear_params
         slope = slope_lin.mean()
@@ -279,47 +282,60 @@ if __name__ == '__main__':
         plt.figure()
         plt.title(f'Rotate around {axis}-axis')
         plt.scatter(Blab_fitted_list[:, idxs_list[0]], Blab_fitted_list[:, idx_axis])
-        plt.plot(x_fit_linear, y_fit_linear, 'r--', label=f'{intercept:.2f} + {slope:.2f} * x, {np.rad2deg(np.arctan(slope)):.2f}', lw=2)
+        plt.plot(x_fit_linear, y_fit_linear, 'r--',
+                 label=f'{intercept:.2f} + {slope:.2f} * x, {np.rad2deg(np.arctan(slope)):.2f}', lw=2)
         plt.axis('equal')
         plt.xlabel(f'B{axis_list[idxs_list[0]]}, G')
         plt.ylabel(f'B{axis_list[idx_axis]}, G')
         plt.legend()
-
 
         # third plane
         x = Blab_fitted_list[:, idxs_list[1]]
         y = Blab_fitted_list[:, idx_axis]
         x_m = np.mean(x)
         y_m = np.mean(y)
-        def calc_R_ellipse(xc, yc, a, b):
+
+
+        def calc_R_ellipse(xc, yc, a, b, alfa):
             """ calculate the distance of each 2D points from the center (xc, yc) """
-            return np.sqrt((x - xc) ** 2 / a ** 2 + (y - yc) ** 2 / b ** 2)
+            # return np.sqrt((x - xc) ** 2 / a ** 2 + (y - yc) ** 2 / b ** 2)
             # return a * b / np.sqrt((x - xc) ** 2 + (y - yc) ** 2)
+            # alfa = np.deg2rad(alfa_deg)
+            return (np.cos(alfa) ** 2 / a ** 2 + np.sin(alfa) ** 2 / b ** 2) * (x - xc) ** 2 + 2 * np.cos(
+                alfa) * np.sin(alfa) * (1 / a ** 2 - 1 / b ** 2) * (x - xc) * (y - yc) + (
+                           np.sin(alfa) ** 2 / a ** 2 + np.cos(alfa) ** 2 / b ** 2) * (y - yc) ** 2
+
+
         def f_2_ellipse(c):
             """ calculate the algebraic distance between the 2D points and the mean circle centered at c=(xc, yc) """
             Ri = calc_R_ellipse(*c)
-            return Ri - 1 #Ri.mean()
-        center_estimate_ellipse = x_m, y_m, max(x - x_m), max(y - y_m)
+            return Ri - 1  # Ri.mean()
+
+
+        center_estimate_ellipse = x_m, y_m, max(x - x_m), max(y - y_m), 0
         center_2_ellipse, ier = optimize.leastsq(f_2_ellipse, center_estimate_ellipse)
-        xc_2_ellipse, yc_2_ellipse, a_ellipse, b_ellipse = center_2_ellipse
-        Ri_2_ellipse = calc_R_ellipse(xc_2_ellipse, yc_2_ellipse, a_ellipse, b_ellipse)
+        xc_2_ellipse, yc_2_ellipse, a_ellipse, b_ellipse, alfa_ellipse = center_2_ellipse
+        Ri_2_ellipse = calc_R_ellipse(xc_2_ellipse, yc_2_ellipse, a_ellipse, b_ellipse, alfa_ellipse)
         R_2_ellipse = Ri_2_ellipse.mean()
-        x_fit2_ellipse = xc_2_ellipse + a_ellipse * np.cos(theta_fit)
-        y_fit2_ellipse = yc_2_ellipse + b_ellipse * np.sin(theta_fit)
+        x_fit2_ellipse = xc_2_ellipse + a_ellipse * np.cos(alfa_ellipse) * np.cos(theta_fit) - b_ellipse * np.sin(
+            alfa_ellipse) * np.sin(theta_fit)
+        y_fit2_ellipse = yc_2_ellipse + a_ellipse * np.cos(alfa_ellipse) * np.sin(theta_fit) + b_ellipse * np.cos(
+            alfa_ellipse) * np.sin(theta_fit)
         print('center_2_ellipse')
         print(center_2_ellipse, R_2_ellipse)
         plt.figure()
         plt.title(f'Rotate around {axis}-axis')
         plt.scatter(Blab_fitted_list[:, idxs_list[1]], Blab_fitted_list[:, idx_axis])
         plt.axis('equal')
-        plt.plot(x_fit2_ellipse, y_fit2_ellipse, 'r--', label=f'{xc_2_ellipse:.2f},{yc_2_ellipse:.2f},{a_ellipse:.2f}, {b_ellipse:.2f}, {a_ellipse/b_ellipse:.2f}, {b_ellipse/a_ellipse:.2f}', lw=2)
+        plt.plot(x_fit2_ellipse, y_fit2_ellipse, 'r--',
+                 label=f'{xc_2_ellipse:.2f},{yc_2_ellipse:.2f},{a_ellipse:.2f}, {b_ellipse:.2f}, {a_ellipse / b_ellipse:.2f}, {b_ellipse / a_ellipse:.2f}, {np.rad2deg(alfa_ellipse):.2f}',
+                 lw=2)
         plt.scatter(xc_2_ellipse, yc_2_ellipse)
         # plt.annotate(f'({xc_2_ellipse:.2f},{yc_2_ellipse:.2f},{a_ellipse:.2f},{b_ellipse:.2f})',
-                     # (xc_2_ellipse, yc_2_ellipse))
+        # (xc_2_ellipse, yc_2_ellipse))
         plt.xlabel(f'B{axis_list[idxs_list[1]]}, G')
         plt.ylabel(f'B{axis_list[idx_axis]}, G')
         plt.legend()
-
 
     print('B_calibrated')
     print(B_calibrated)
@@ -337,5 +353,3 @@ if __name__ == '__main__':
     # print(B_calibrated_rotated)
 
     plt.show()
-
-

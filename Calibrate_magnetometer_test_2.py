@@ -1,6 +1,9 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
 from Calibrate_without_earth_test import *
+from fit_ellipse import *
+import fit_circle as cf
 
 
 def rotate_about_axis(vector, axis, angle):
@@ -18,14 +21,20 @@ def generate_rotaion_data(Bbias, Bextra, alpha_tilted=0, phi_tilted=0, theta_til
 
     all_angles = np.arange(0, 360, 5)
     omega = np.arange(2000, 3800, 0.4)
+    # initial magnetic field for fitting
+    B_init = CartesianVector(210, 80, 20)
+    init_params = {'B_labx': B_init[0], 'B_laby': B_init[1], 'B_labz': B_init[2],
+                   'glor': 5, 'D': 2870, 'Mz1': 0,
+                   'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
 
     b_temp = []
     B_set_list = []
     for idx_axis, axis in enumerate(axis_box[:]):
         # print(idx_axis, axis)
-        k = random.randint(3, 20)
-        angle_list = all_angles  # sorted(random.choices(all_angles, k=k))
+        k = 8 #random.randint(10, 20)
+        angle_list = sorted(random.choices(all_angles, k=k)) #all_angles  #
         B_set_list_temp = np.array([])
+        Blab_fitted_list = np.array([])
         a_temp = np.array([])
         for angle in angle_list[:]:
             Bextra_rot = rotate_about_axis(Bextra, axis, angle)
@@ -38,8 +47,15 @@ def generate_rotaion_data(Bbias, Bextra, alpha_tilted=0, phi_tilted=0, theta_til
             B_set_list_temp = np.append(B_set_list_temp, B_lab)
             B_set_list_temp = B_set_list_temp.reshape(-1, len(B_lab))
 
+            parameters = fit_full_odmr(omega, odmr, init_params=init_params, save=False, debug=False)
+            B_lab_fitted = np.array([parameters["B_labx"], parameters["B_laby"], parameters["B_labz"]])
+            Blab_fitted_list = np.append(Blab_fitted_list, B_lab_fitted)
+            Blab_fitted_list = Blab_fitted_list.reshape(-1, len(B_lab_fitted))
+            # Mz_fitted_list[idx] = np.array([parameters['Mz1'], parameters['Mz2'], parameters['Mz3'], parameters['Mz4']])
+
         b_temp.append(a_temp)
-        B_set_list.append(B_set_list_temp)
+        # B_set_list.append(B_set_list_temp)
+        B_set_list.append(Blab_fitted_list)
     print(len(B_set_list), B_set_list[0].shape)
     return B_set_list
 
@@ -54,10 +70,10 @@ if __name__ == '__main__':
     phi = 20
     Bbias = CartesianVector(B, theta, phi)
     alpha_tilted = 0
-    phi_tilted = 45
+    phi_tilted = 0
     theta_tilted = 0
 
-    noise_std = 0.
+    noise_std = 0.01
 
     B_set_list = generate_rotaion_data(Bbias=Bbias, Bextra=Bextra, alpha_tilted=alpha_tilted, phi_tilted=phi_tilted,
                           theta_tilted=theta_tilted, noise_std=noise_std)
@@ -71,11 +87,20 @@ if __name__ == '__main__':
             idxs_list = np.roll([0,1,2], -idx_plane)
             # idxs_list = [0, 1, 2]
             # idxs_list.remove(idx_axis)
+            # if idx_axis != idxs_list[2]:
+            #     continue
 
             plt.figure()
             plt.title(f'Rotate around {axis}-axis')
-            idx_x = min(idxs_list[0],idxs_list[1])
-            idx_y = max(idxs_list[0],idxs_list[1])
+            if idxs_list[1] == idx_axis:
+                idx_x = idxs_list[0]
+                idx_y = idxs_list[1]
+            elif idxs_list[0] == idx_axis:
+                idx_x = idxs_list[1]
+                idx_y = idxs_list[0]
+            else:
+                idx_x = min(idxs_list[0],idxs_list[1])
+                idx_y = max(idxs_list[0],idxs_list[1])
             plt.scatter(Blab_fitted_list[:, idx_x], Blab_fitted_list[:, idx_y])
             plt.axis('equal')
             plt.xlabel(f'B{axis_list[idx_x]}, G')
@@ -88,21 +113,42 @@ if __name__ == '__main__':
             a = 0.58
             b = 0.58
             xy = np.array([x, y]).transpose()
-            print(xy)
+            # print(xy)
 
-            ellipse = EllipseModel()
-            # ellipse.params((x_m, y_m, a, b, 0))
-            ellipse.estimate(xy)
-            print(ellipse.params)
+            # ellipse = EllipseModel()
+            # # ellipse.params((x_m, y_m, a, b, 0))
+            # ellipse.estimate(xy)
+            # print(ellipse.params)
+            #
+            t = np.linspace(0, 2 * np.pi, 25)
+            # try:
+            #     xy_fitted = EllipseModel().predict_xy(t, params=ellipse.params).transpose()
+            #     x_fitted = xy_fitted[0]# * np.cos(t)
+            #     y_fitted = xy_fitted[1]# * np.sin(t)
+            #     plt.plot(x_fitted, y_fitted)
+            # except Exception as e:
+            #     print(e)
+            # # plt.legend()
 
             try:
-                t = np.linspace(0, 2 * np.pi, 25)
-                xy_fitted = EllipseModel().predict_xy(t, ellipse.params).transpose()
-                x_fitted = xy_fitted[0]# * np.cos(t)
-                y_fitted = xy_fitted[1]# * np.sin(t)
-                plt.plot(x_fitted, y_fitted)
+                center_ellipse, phi_ellipse, axes_ellipse = find_ellipse(x, y)
+                print("center = ", center_ellipse)
+                print("angle of rotation = ", np.rad2deg(phi_ellipse))
+                print("axes = ", axes_ellipse)
+                x_ellipse2 = center_ellipse[0] + axes_ellipse[0] * np.cos(phi_ellipse) * np.cos(t) - axes_ellipse[1] * np.sin(phi_ellipse) * np.sin(t)
+                y_ellipse2 = center_ellipse[1] + axes_ellipse[0] * np.sin(phi_ellipse) * np.cos(t) + axes_ellipse[1] * np.cos(phi_ellipse) * np.sin(t)
+
+                plt.plot(x_ellipse2, y_ellipse2, label=f'c=({center_ellipse[0]:.2f},{center_ellipse[1]:.2f}), angle={np.rad2deg(phi_ellipse):.2f}, axes=({axes_ellipse[0]:.2f},{axes_ellipse[1]:.2f})')
+                plt.legend()
             except Exception as e:
                 print(e)
-            # plt.legend()
+
+            if idx_axis == idxs_list[2]:
+                xc, yc, r, s = cf.hyper_fit(xy)
+                x_circle = xc + r * np.cos(t)
+                y_circle = yc + r * np.sin(t)
+                plt.plot(x_circle, y_circle, label = f'c=({xc:.2f},{yc:.2f}), r={r:.2f}')
+                plt.legend()
+
 
     plt.show()
