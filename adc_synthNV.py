@@ -16,7 +16,7 @@ import NVcenter as nv
 from detect_peaks import *
 from utilities import *
 import glob
-import json
+#import json
 
 import subprocess
 
@@ -55,6 +55,11 @@ os.system("clear")
 
 frequencies0, A_inv = nv.calculateInitalSystem(filename = "ODMR_fit_parameters.json")
 
+print(frequencies0[0])
+print(frequencies0[1])
+print(frequencies0[2])
+print(frequencies0[3])
+
 spi = spidev.SpiDev()
 spi.open(1,2)
 spi.max_speed_hz = 115200
@@ -90,8 +95,13 @@ def read_values_rp():
             endcharacter = ser_uart.read()
             received_data += str(endcharacter.decode('UTF-8'))
 
-        received_data = float(received_data) #print("{0:s}\n".format(received_data))
-        if ((received_data > 0.0) and (received_data < 2.0)):
+        #print(type(received_data))
+        try:
+            received_data = float(received_data) #print("{0:s}\n".format(received_data))
+        except:
+            print("String to float error.")
+        #print(type(received_data))
+        if ((received_data > 0.8) and (received_data < 1.2)):
             get_data = 0
         else:
             print("Wrong UART data.\n")
@@ -274,7 +284,7 @@ def get_baseline(f0,points):
     return vmean_sum1/points
 
 
-dev0=50
+dev0=30
 step=2
 a1=4
 a2=1
@@ -282,32 +292,37 @@ noise=10
 B1={}
 sets = 10
 
-#for _ in range(10):
-#    print(read_values_rp())
+for _ in range(10):
+    print(read_values_rp())
 
-#input()
+input()
 
 print("\n#######################################################")
 
 t0=time.time()
+
+f2 = frequencies0[0]
+f4 = frequencies0[1]
+f6 = frequencies0[2]
+f8 = frequencies0[3]
 
 for i in range(sets):
     #print(i)
     level = get_baseline(2900,10)
     #scan_peak(2417,dev0,step,a1,a2)
     #level = get_baseline(2900,10)
-    peak2_MW, peak2_ODMR = scan_peak(2607,dev0,step,a1,a2,level,noise)
+    peak2_MW, peak2_ODMR = scan_peak(f2,dev0,step,a1,a2,level,noise)
     #peak2_MW = DataFrame(peak2_MW, columns=['MW'])
     #peak2_ODMR = DataFrame(peak2_ODMR, columns=['ODMR'])
     #scan_peak(2805,dev0,step,a1,a2)
     #level = get_baseline(2900,10)
-    peak4_MW, peak4_ODMR = scan_peak(2903,dev0,step,a1,a2,level,noise)
+    peak4_MW, peak4_ODMR = scan_peak(f4,dev0,step,a1,a2,level,noise)
     #scan_peak(3113,dev0,step,a1,a2)
     #level = get_baseline(2900,10)
-    peak6_MW, peak6_ODMR = scan_peak(3266,dev0,step,a1,a2,level,noise)
+    peak6_MW, peak6_ODMR = scan_peak(f6,dev0,step,a1,a2,level,noise)
     #scan_peak(3323,dev0,step,a1,a2)
     #level = get_baseline(2900,10)
-    peak8_MW, peak8_ODMR = scan_peak(3420,dev0,step,a1,a2,level,noise)
+    peak8_MW, peak8_ODMR = scan_peak(f8,dev0,step,a1,a2,level,noise)
     #level = get_baseline(2905,10)
 #    scan_peak(2905,600,1,64,1,level,10)
     t1 = time.time()
@@ -351,7 +366,10 @@ for i in range(sets):
 
 
     peaks_list = np.array(peaks_list).flatten()
-    # print(peaks_list)
+    print(peaks_list[0])
+    print(peaks_list[1])
+    print(peaks_list[2])
+    print(peaks_list[3])
     if (peaks_list == 0).any():
         continue
 
@@ -364,7 +382,10 @@ for i in range(sets):
     print("\nBxyz = ({0:.2f}, {1:.2f}, {2:.2f}) G\t\t|B| = {3:.2f} G".format(Bsens[0],Bsens[1],Bsens[2],np.sqrt(Bsens[0]*Bsens[0]+Bsens[1]*Bsens[1]+Bsens[2]*Bsens[2])))
     B1[i] = np.sqrt(Bsens[0]*Bsens[0]+Bsens[1]*Bsens[1]+Bsens[2]*Bsens[2])
     #time.sleep(2)
-
+    f2 = peaks_list[0]
+    f4 = peaks_list[1]
+    f6 = peaks_list[2]
+    f8 = peaks_list[3]
     #filename2="B_values.dat"
     #print(filename2)
     #f2 = open(filename2, 'w+')
