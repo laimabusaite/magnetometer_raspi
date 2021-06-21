@@ -16,11 +16,12 @@ def rotate_about_axis(vector, axis, angle):
     return rotated_vector
 
 
-def generate_rotaion_data(Bbias, Bextra, alpha_tilted=0, phi_tilted=0, theta_tilted=0, noise_std=0.0, savedir='generated_data'):
+def generate_rotation_data(Bbias, Bextra, alpha_tilted=0, phi_tilted=0, theta_tilted=0, angles_list=np.array([0.0]),
+                           noise_std=0.0, savedir='generated_data'):
     axis_diamond = np.eye(3)
     axis_box = rotate(axis_diamond, theta=theta_tilted, phi=phi_tilted, alpha=alpha_tilted).transpose()
 
-    all_angles = np.arange(0, 360, 0.5)
+    all_angles = np.array(angles_list)  # np.arange(0, 360, 0.5)
     omega = np.arange(2000, 3800, 0.4)
     # initial magnetic field for fitting
     # B_init = CartesianVector(210, 80, 20)
@@ -34,7 +35,7 @@ def generate_rotaion_data(Bbias, Bextra, alpha_tilted=0, phi_tilted=0, theta_til
         # print(idx_axis, axis)
         # k = random.randint(10, 60)
         # print('k =', k)
-        angle_list = all_angles  #sorted(random.choices(all_angles, k=k)) #
+        angle_list = all_angles  # sorted(random.choices(all_angles, k=k)) #
         print(len(angle_list))
         B_set_list_temp = np.array([])
         Blab_fitted_list = np.array([])
@@ -57,12 +58,11 @@ def generate_rotaion_data(Bbias, Bextra, alpha_tilted=0, phi_tilted=0, theta_til
             # Blab_fitted_list = Blab_fitted_list.reshape(-1, len(B_lab_fitted))
             # Mz_fitted_list = np.array([parameters['Mz1'], parameters['Mz2'], parameters['Mz3'], parameters['Mz4']])
 
-
             if not os.path.exists(f'{savedir}/axis_idx={idx_axis}'):
                 os.makedirs(f'{savedir}/axis_idx={idx_axis}')
 
             save_filename = f'{savedir}/axis_idx={idx_axis}/Bbias={Bbias[0]:.2f}-{Bbias[1]:.2f}-{Bbias[1]:.2f}_Bextra={Bextra[0]:.2f}-{Bextra[1]:.2f}-{Bextra[1]:.2f}_axis_idx={idx_axis}_axis={axis[0]:.2f}-{axis[1]:.2f}-{axis[2]:.2f}_angle={angle}_noise={noise_std}.dat'
-            dataframe = pd.DataFrame(data={'MW':omega, 'ODMR':odmr})
+            dataframe = pd.DataFrame(data={'MW': omega, 'ODMR': odmr})
             dataframe.to_csv(save_filename, index=False, header=False)
 
         b_temp.append(a_temp)
@@ -81,17 +81,20 @@ if __name__ == '__main__':
     theta = 80
     phi = 20
     Bbias = CartesianVector(B, theta, phi)
+
     alpha_tilted = 0
     phi_tilted = 0
     theta_tilted = 0
 
-    noise_std = 0.01
+    noise_std = 0.0
+    all_angles = np.arange(0, 360, 5)
 
-    for phi_tilted in np.arange(0, 45, 5):
-        # for theta_tilted in np.arange(0, 45, 5):
-        savedir = f'generated_data/phi_axis={phi_tilted}_theta_axis={theta_tilted}'
-        B_set_list = generate_rotaion_data(Bbias=Bbias, Bextra=Bextra, alpha_tilted=alpha_tilted, phi_tilted=phi_tilted,
-                      theta_tilted=theta_tilted, noise_std=noise_std, savedir=savedir)
+    for phi_tilted in np.arange(0, 50, 5):
+        for theta_tilted in np.arange(0, 50, 5):
+            savedir = f'generated_data_clean/phi_axis={phi_tilted}_theta_axis={theta_tilted}'
+            B_set_list = generate_rotation_data(Bbias=Bbias, Bextra=Bextra,
+                                                alpha_tilted=alpha_tilted, phi_tilted=phi_tilted, theta_tilted=theta_tilted,
+                                                angles_list=all_angles, noise_std=noise_std, savedir=savedir)
     #
     # axis_list = ['x', 'y', 'z']
     # for idx_axis, axis in enumerate(axis_list):
@@ -164,6 +167,5 @@ if __name__ == '__main__':
     #             y_circle = yc + r * np.sin(t)
     #             plt.plot(x_circle, y_circle, label = f'c=({xc:.2f},{yc:.2f}), r={r:.2f}')
     #             plt.legend()
-
 
     plt.show()

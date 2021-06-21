@@ -9,8 +9,8 @@ from numpy import *
 
 # Coordinates of the 2D points
 
-x = r_[  9, 35, -13,  10,  23,   0]
-y = r_[ 34, 10,   6, -14,  27, -10]
+x = r_[ 9, 35, -13,  10,  23,   0]
+y = r_[34, 10,   6, -14,  27, -10]
 basename = 'circle'
 
 # x = r_[36, 36, 19, 18, 33, 26]

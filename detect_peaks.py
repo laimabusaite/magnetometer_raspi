@@ -103,13 +103,15 @@ def detect_peaks_simple(x_data, y_data, height=None, debug=False):
     # d = {'MW': x_data, 'ODMR': y_data}
     x_data = np.array(x_data)
     y_data = np.array(y_data)
+    y_norm = 1 - (y_data - min(y_data)) / (max(y_data) - min(y_data))
     df = pd.DataFrame(data={'MW': x_data, 'ODMR': y_data})
     # df['ODMR'] = df['ODMR_raw'] #savgol_filter(df['ODMR_raw'], 71, 4)
 
     min_distance = len(df) / (max(df['MW']) - min(df['MW'])) * 50
     # print(min_distance)
     if height:
-        height_norm = (max(-df['ODMR']) - min(-df['ODMR'])) * height
+        height_norm = -max(df['ODMR']) + (max(df['ODMR']) - min(df['ODMR'])) * height
+
     time0 = time.time()
     if height:
         peaks, properties = find_peaks(-df['ODMR'], distance=min_distance, height=height_norm)
@@ -121,14 +123,16 @@ def detect_peaks_simple(x_data, y_data, height=None, debug=False):
 
     if debug:
         import matplotlib.pyplot as plt
+        if height:
+            print('height_norm = ', height_norm)
         print('find_peaks')
         print('Time:', time1 - time0)
         print(peaks)
         print(len(peak_positions), peak_positions)
         # plt.plot(df['MW'], df['ODMR_raw'], color='b', markersize=5, marker='o', linewidth=1)
-        plt.plot(df['MW'], df['ODMR'], color='k', markersize=5, marker='o', linewidth=1)
+        plt.plot(df['MW'],df['ODMR'], color='k', markersize=5, marker='o', linewidth=1)
         plt.plot(df['MW'][peaks], df['ODMR'][peaks], "x", label='exp peaks')
-        # plt.show()
+        plt.show()
 
     return peak_positions, peak_amplitudes
 
@@ -166,16 +170,27 @@ def detect_peaks_cwt(x_data, y_data, widthMHz = np.array([5]), min_snr=1, debug=
         # plt.plot(df['MW'], df['ODMR_raw'], color='b', markersize=5, marker='o', linewidth=1)
         plt.plot(df['MW'], df['ODMR'], color='k', markersize=5, marker='o', linewidth=1)
         plt.plot(df['MW'][peaks], df['ODMR'][peaks], "x", label='exp peaks')
-        # plt.show()
+        plt.show()
 
     return peak_positions, peak_amplitudes
 
 
 if __name__ == '__main__':
 
-    filename = 'test_data/test_dev20.0_peak2611.0.dat'
+    # filename = 'test_data/test_dev20.0_peak2611.0.dat'
+
+
+    import glob
+    filedir = 'test_data_rp'
+    filenames = glob.glob(f'{filedir}/test_full_scan*.dat')
+    print(filenames)
+    filename = filenames[0]
+    # filename = 'full_scan_rp_1.dat'
+    print(filename)
+
     dataframe = import_data(filename)
     print(dataframe.head())
-    peaks, amplitudes = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=True)
+    peaks, amplitudes = detect_peaks_simple(dataframe['MW'], dataframe['ODMR'], height=0.1, debug=True)
     print(peaks)
     print(amplitudes)
+    # plt.show()

@@ -85,6 +85,36 @@ class NVsetForFitting(nv.NVcenterSet):
         if save:
             self.save_parameters(self.fitResultLorentz.best_values, save_filename)
 
+    def fit_odmr_voigt(self, x, y, init_params, varyB=True, varyGlor=True, varyD=True,
+                         varyMz=False, varyAsim=False, varyFraction=False, save=True, save_filename='ODMR_fit_parameters.json'):
+
+        self.summodel = Model(self.sum_odmr_voigt)
+        params = self.summodel.make_params(B_labx=init_params['B_labx'], B_laby=init_params['B_laby'],
+                                           B_labz=init_params['B_labz'], glor=init_params['glor'],
+                                           D=init_params['D'],
+                                           Mz1=init_params['Mz1'], Mz2=init_params['Mz2'], Mz3=init_params['Mz3'],
+                                           Mz4=init_params['Mz4'],
+                                           asym_coef = 0,
+                                           fraction = 0.5)
+        params.update(self.summodel.make_params())
+        params['B_labx'].set(init_params['B_labx'], min=0, max=400, vary=varyB)
+        params['B_laby'].set(init_params['B_laby'], min=0, max=400, vary=varyB)
+        params['B_labz'].set(init_params['B_labz'], min=0, max=400, vary=varyB)
+        params['glor'].set(init_params['glor'], min=0, max=50, vary=varyGlor)
+        params['D'].set(init_params['D'], min=2750, max=2900, vary=varyD)
+        params['Mz1'].set(init_params['Mz1'], min=-10, max=10, vary=varyMz)
+        params['Mz2'].set(init_params['Mz2'], min=-10, max=10, vary=varyMz)
+        params['Mz3'].set(init_params['Mz3'], min=-10, max=10, vary=varyMz)
+        params['asym_coef'].set(0, min=-1, max=1, vary=varyAsim)
+        params['fraction'].set(0.5, min=0, max=1, vary=varyFraction)
+
+        self.params_voigt = params
+
+        self.fitResultVoigt = self.summodel.fit(y, self.params_voigt, x=x)
+
+        if save:
+            self.save_parameters(self.fitResultVoigt.best_values, save_filename)
+
     def save_parameters(self, dictionary_data, filename):
 
         a_file = open(filename, "w")
@@ -156,14 +186,14 @@ def normalize_data(x_data, y_data, debug=False):
 
 
 def fit_full_odmr(x_data, y_data,
-                  init_params={'B_labx': 169.12, 'B_laby': 87.71, 'B_labz': 40.39, 'glor': 4.44, 'D': 2867.61, 'Mz1': 0,
+                  init_params={'B_labx': 169.12, 'B_laby': 87.71, 'B_labz': 40.39, 'glor': 4.44, 'D': 2870, 'Mz1': 0,
                                'Mz2': 0, 'Mz3': 0, 'Mz4': 0}, save=True,
                   save_filename="ODMR_fit_parameters.json", debug=False):
     '''
     x_data and y_data:  array like
     init_params: dictionary of inital parameters default:
     init_params = {'B_labx': 169.12, 'B_laby': 87.71, 'B_labz': 40.39,
-                    'glor': 4.44, 'D': 2867.61,
+                    'glor': 4.44, 'D': 2870,
                     'Mz1': 0, 'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
     save_filename: string, json filename to store fitting parameters default:
     save_filename="ODMR_fit_parameters.json"
@@ -185,6 +215,9 @@ def fit_full_odmr(x_data, y_data,
     print(init_params)
     nv_for_fit.fit_odmr_lorentz(x_data, y_unitary, init_params, varyB=True, varyGlor=False, varyD=False,
                                 varyMz=False, save = False)
+    #TODO fit voigt
+    # nv_for_fit.fit_odmr_voigt(x_data, y_unitary, init_params, varyB=True, varyGlor=False, varyD=False,
+    #                             varyMz=False, save=False)
     if debug:
         print(nv_for_fit.fitResultLorentz.fit_report())
         print(nv_for_fit.fitResultLorentz.best_values)
@@ -215,22 +248,57 @@ def fit_full_odmr(x_data, y_data,
 
     return nv_for_fit.fitResultLorentz.best_values
 
+def get_initial_magnetic_field(x_data, y_data):
+    B_lab = np.array([179.,72.,36.])
+
+    peaks0 = np.array([2458., 2620., 2766., 2893., 3141., 3231., 3310., 3379.])
+    nv_center_set = nv.NVcenterSet()
+    nv_center_set.setMagnetic(B_lab=B_lab)
+    A_inv = nv_center_set.calculateAinv(B_lab)
+
+    peaks, _ = detect_peaks_simple(x_data, y_data, height=0.1, debug=False)
+
+    delta_freqs = (peaks0 - peaks)[1::2]
+
+    Binit = B_lab + deltaB_from_deltaFrequencies(A_inv, delta_freqs)
+
+    return Binit
 
 if __name__ == '__main__':
-    filename = 'full_scan_rp_1.dat'
+    import glob
+
+    filedir = 'test_data_rp'
+    filenames = glob.glob(f'{filedir}/test_full_scan*.dat')
+
+    print(filenames)
+    filename = filenames[1]
+
+    # filename = 'full_scan_rp_1.dat'
+
+    print(filename)
     dataframe = import_data(filename)
-    print(dataframe)
+    # print(dataframe)
 
     x_data = dataframe['MW']
     y_data = dataframe['ODMR']
 
-    B = 210
+
+
+
+    B = 200
     theta = 80
     phi = 20
     Blab = CartesianVector(B, theta, phi)
+    # Blab = get_initial_magnetic_field(x_data, y_data) #CartesianVector(B, theta, phi)
     print(Blab)
+
+    B = np.linalg.norm(Blab)
+    print(B)
+
     init_params = {'B_labx': Blab[0], 'B_laby': Blab[1], 'B_labz': Blab[2],
-                   'glor': 4.44, 'D': 2867.61, 'Mz1': 0,
+                   'glor': 5, 'D': 2870, 'Mz1': 0,
                    'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
     save_filename = "ODMR_fit_parameters.json"
-    fit_full_odmr(x_data, y_data, init_params=init_params, save_filename=save_filename, debug=True, save=True)
+    parameters = fit_full_odmr(x_data, y_data, init_params=init_params, save_filename=save_filename, debug=True, save=False)
+    print(parameters)
+

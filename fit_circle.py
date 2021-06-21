@@ -3,6 +3,21 @@ from scipy import optimize
 from matplotlib import pyplot as plt, cm, colors
 from math import sqrt, pi
 
+# fit linear
+def calc_linear(x, slope, intercept):
+    return slope * x + intercept
+
+
+def f_linear(c, x, y):
+    y_2 = calc_linear(x, *c)
+    return y - y_2
+
+def fit_linear(x, y):
+    linear_estimate = (max(y) - min(y)) / (max(x) - min(x)), 0
+    linear_params, _ = optimize.leastsq(f_linear, linear_estimate, args=(x,y))
+    slope, intercept = linear_params
+    return slope, intercept
+
 def calc_R(x,y, xc, yc):
     """
     calculate the distance of each 2D points from the center (xc, yc)
