@@ -233,4 +233,4 @@ if __name__ == '__main__':
                    'glor': 4.44, 'D': 2867.61, 'Mz1': 0,
                    'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
     save_filename = "ODMR_fit_parameters.json"
-    fit_full_odmr(x_data, y_data, init_params=init_params, save_filename=save_filename, debug=True, save=False)
+    fit_full_odmr(x_data, y_data, init_params=init_params, save_filename=save_filename, debug=True, save=True)
