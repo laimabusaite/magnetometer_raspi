@@ -82,24 +82,21 @@ def read_values_rp():
     '''
     get_data = 1
     while get_data:
-        #time.sleep(1)
         received_data = ''
         endcharacter = ''
         while (endcharacter != b'\n'):
             endcharacter = ser_uart.read()
             try:
                 received_data += str(endcharacter.decode('UTF-8'))
-                #print(received_data)
             except:
                 print("Data decode error.\n", flush = True)
 
         try:
             received_data = float(received_data)
-            #print(received_data)
             if ((received_data > 0.8) and (received_data < 1.6)):
                 get_data = 0
             else:
-                print("Wrong UART data.\n", flush = True)
+                print(".", flush = True) #Wrong UART data
 
         except:
             print("String to float error.\n", flush = True)
@@ -239,7 +236,7 @@ time.sleep(sleeptime)
 print("Port is open\t\t",ser.is_open)
 # ----
 
-# Setting the microwave power in dBm and running a warmup procedure for the microwave generator
+# Setting the microwave power in dBm
 amp=15.0
 
 send_amp="W{0:.1f}".format(amp)
@@ -260,24 +257,12 @@ print(ser.write(b"E1"))
 temp_error=ser.readline()
 temp_error=temp_error.decode('UTF-8')[1:]
 print("{0:s}\t".format(temp_error))
-
-print("Microwave generator warmup.\n")
-print(".                .")
-for _ in range(16):
-    print("#", end="", flush=True)
-    level = get_baseline(2900,10)
-    scan_peak(2600,20,2,8,1,level,10,0)
-    scan_peak(2800,20,2,8,1,level,10,0)
-    scan_peak(3200,20,2,8,1,level,10,0)
-    scan_peak(3400,20,2,8,1,level,10,0)
-
-print("\n`                `\n")
-print("Warmup done.\n")
 # ----
 
 # Menu
-B1={}
+B1 = {}
 i1 = 0
+warmup = 32
 t0=time.time()
 
 while True:
@@ -288,10 +273,30 @@ while True:
     print("0 - Exit")
     menu1 = input("->")
     if menu1 == "1":
+        print("\nMicrowave generator warmup.")
+        print(".",end="",flush=True)
+        for _ in range(warmup-2):
+            print(" ",end="",flush=True)
+
+        print(".")
+        for _ in range(warmup):
+            level = get_baseline(2900,10)
+            scan_peak(2600,20,2,8,1,level,10,0)
+            scan_peak(2800,20,2,8,1,level,10,0)
+            scan_peak(3300,20,2,8,1,level,10,0)
+            scan_peak(3400,20,2,8,1,level,10,0)
+            print("#", end="", flush=True)
+
+        print("`",end="",flush=True)
+        for _ in range(warmup-2):
+            print(" ",end="",flush=True)
+
+        print("`")
+        print("Warmup done.\n")
+        print("Running full ODMR peak scan.\n")
         level = get_baseline(2900,10)
         full_scan_mw, full_scan_odmr = scan_peak(2905,600,1,64,1,level,10,0)
-        #write_file(full_scan_mw, full_scan_odmr, "full_scan")
-        #os.system("python3 fit_odmr1.py")
+        write_file(full_scan_mw, full_scan_odmr, "full_scan")
         B = 210
         theta = 80
         phi = 20
@@ -299,8 +304,8 @@ while True:
         print(Blab)
         init_params = {'B_labx': Blab[0], 'B_laby': Blab[1], 'B_labz': Blab[2], 'glor': 4.44, 'D': 2867.61, 'Mz1': 0, 'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
         save_filename = "ODMR_fit_parameters.json"
-        fit_full_odmr(full_scan_mw, full_scan_odmr, init_params=init_params, save_filename=save_filename, debug=False)
-        print("Calibration done.")
+        fit_odmr.fit_full_odmr(full_scan_mw, full_scan_odmr, init_params=init_params, save_filename=save_filename, debug=False)
+        print("\nCalibration done.\n")
     elif menu1 == "2":
         print("3d funkcija")
     elif menu1 == "3":
@@ -325,13 +330,34 @@ while True:
         f8 = frequencies0[3]
         print("Done.\n")
         # Set meassuring parameters
-        dev0=20 # Microwave scan width
+        dev0=30 # Microwave scan width
         step=2 # Microwave scan step size in MHz
         a1 = int(input("Input number of ODMR scan averages: "))
         a2=1
         noise=10 # Maximum acceptable noise level
         sets = int(input("Input number of magnetic field meassurements, N = "))
         # ----
+
+        print("\nMicrowave generator warmup.\n")
+        print(".",end="",flush=True)
+        for _ in range(warmup-2):
+            print(" ",end="",flush=True)
+
+        print(".")
+        for _ in range(warmup):
+            level = get_baseline(2900,10)
+            scan_peak(2600,20,2,8,1,level,10,0)
+            scan_peak(2800,20,2,8,1,level,10,0)
+            scan_peak(3300,20,2,8,1,level,10,0)
+            scan_peak(3400,20,2,8,1,level,10,0)
+            print("#", end="", flush=True)
+
+        print("`",end="",flush=True)
+        for _ in range(warmup-2):
+            print(" ",end="",flush=True)
+
+        print("`")
+        print("Warmup done.\n")
 
         print("\n###########################################################")
         for i in range(sets):

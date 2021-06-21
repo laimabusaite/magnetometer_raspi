@@ -5,9 +5,14 @@ import numpy as np
 import time
 import os
 
-filenames = sorted(glob.glob("full_scan_rp_1.dat"))
+filenames = sorted(glob.glob("test_data_rp/*.dat"))
 filenames.sort(key=os.path.getmtime)
-filenames = filenames[-4::1]
+filenames = filenames[-4*10::1]
+
+#filenames = sorted(glob.glob("test_data_rp/test_full_scan_*.dat"))
+#filenames.sort(key=os.path.getmtime)
+#filenames = filenames[-1::1]
+#filename = filenames[0]
 
 #f = filenames[0]
 
