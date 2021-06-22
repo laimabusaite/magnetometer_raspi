@@ -113,7 +113,7 @@ def write_file(x,y,s):
     timestamp = str(datetime.datetime.now())
     timestamp = timestamp.replace(":","-")
     timestamp = timestamp.replace(" ","_")
-    filename1="test_data_rp/test_{0:s}_{1:s}.dat".format(s,timestamp)
+    filename1="test_width_contrast_data/test_{0:s}_{1:s}.dat".format(s,timestamp)
 
     f1 = open(filename1, 'w+')
     for i2 in range(len(x)):
@@ -205,6 +205,29 @@ def get_baseline(f0,points):
     return vmean_sum1/points
 
 
+def microwave_generator_warmup():
+    print("\nMicrowave generator warmup.")
+    print(".",end="",flush=True)
+    for _ in range(warmup-2):
+        print(" ",end="",flush=True)
+
+    print(".")
+    for _ in range(warmup):
+        level = get_baseline(2900,10)
+        scan_peak(2600,20,2,8,1,level,10,0)
+        scan_peak(2800,20,2,8,1,level,10,0)
+        scan_peak(3300,20,2,8,1,level,10,0)
+        scan_peak(3400,20,2,8,1,level,10,0)
+        print("#", end="", flush=True)
+
+    print("\n`",end="",flush=True)
+    for _ in range(warmup-2):
+        print(" ",end="",flush=True)
+
+    print("`")
+    print("Warmup done.\n")
+
+
 # Start of the program
 os.system("clear")
 
@@ -273,36 +296,17 @@ while True:
     print("0 - Exit")
     menu1 = input("->")
     if menu1 == "1":
-        print("\nMicrowave generator warmup.")
-        print(".",end="",flush=True)
-        for _ in range(warmup-2):
-            print(" ",end="",flush=True)
-
-        print(".")
-        for _ in range(warmup):
-            level = get_baseline(2900,10)
-            scan_peak(2600,20,2,8,1,level,10,0)
-            scan_peak(2800,20,2,8,1,level,10,0)
-            scan_peak(3300,20,2,8,1,level,10,0)
-            scan_peak(3400,20,2,8,1,level,10,0)
-            print("#", end="", flush=True)
-
-        print("`",end="",flush=True)
-        for _ in range(warmup-2):
-            print(" ",end="",flush=True)
-
-        print("`")
-        print("Warmup done.\n")
+        microwave_generator_warmup()
         print("Running full ODMR peak scan.\n")
         level = get_baseline(2900,10)
         full_scan_mw, full_scan_odmr = scan_peak(2905,600,1,64,1,level,10,0)
         write_file(full_scan_mw, full_scan_odmr, "full_scan")
-        B = 210
+        B = 200
         theta = 80
         phi = 20
         Blab = CartesianVector(B, theta, phi)
         print(Blab)
-        init_params = {'B_labx': Blab[0], 'B_laby': Blab[1], 'B_labz': Blab[2], 'glor': 4.44, 'D': 2867.61, 'Mz1': 0, 'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
+        init_params = {'B_labx': Blab[0], 'B_laby': Blab[1], 'B_labz': Blab[2], 'glor': 4.44, 'D': 2870.00, 'Mz1': 0, 'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
         save_filename = "ODMR_fit_parameters.json"
         fit_odmr.fit_full_odmr(full_scan_mw, full_scan_odmr, init_params=init_params, save_filename=save_filename, debug=False)
         print("\nCalibration done.\n")
@@ -332,36 +336,17 @@ while True:
         # Set meassuring parameters
         dev0=30 # Microwave scan width
         step=2 # Microwave scan step size in MHz
-        a1 = int(input("Input number of ODMR scan averages: "))
+        a1 = 8 # int(input("Input number of ODMR scan averages: "))
         a2=1
         noise=10 # Maximum acceptable noise level
         sets = int(input("Input number of magnetic field meassurements, N = "))
         # ----
 
-        print("\nMicrowave generator warmup.\n")
-        print(".",end="",flush=True)
-        for _ in range(warmup-2):
-            print(" ",end="",flush=True)
-
-        print(".")
-        for _ in range(warmup):
-            level = get_baseline(2900,10)
-            scan_peak(2600,20,2,8,1,level,10,0)
-            scan_peak(2800,20,2,8,1,level,10,0)
-            scan_peak(3300,20,2,8,1,level,10,0)
-            scan_peak(3400,20,2,8,1,level,10,0)
-            print("#", end="", flush=True)
-
-        print("`",end="",flush=True)
-        for _ in range(warmup-2):
-            print(" ",end="",flush=True)
-
-        print("`")
-        print("Warmup done.\n")
+        microwave_generator_warmup()
 
         print("\n###########################################################")
         for i in range(sets):
-            time.sleep(0.05)
+            #time.sleep(0.05)
             print("\n {0:d}. ".format(i+1), end = "", flush = True)
             level = get_baseline(2900,10)
 
