@@ -5,9 +5,9 @@ import numpy as np
 import time
 import os
 
-filenames = sorted(glob.glob("test_data_rp/*.dat"))
+filenames = sorted(glob.glob("CURR_Y/*.dat"))
 filenames.sort(key=os.path.getmtime)
-filenames = filenames[-4*10::1]
+#filenames = filenames[-4*10::1]
 
 #filenames = sorted(glob.glob("test_data_rp/test_full_scan_*.dat"))
 #filenames.sort(key=os.path.getmtime)

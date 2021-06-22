@@ -104,16 +104,19 @@ def read_values_rp():
     return received_data
 
 
-def write_file(x,y,s1,s2):
+def write_file(x,y,folder_name,s1,s2=""):
     '''
     Write meassured individual ODMR peak data to file with a timestamp.
     Outputs:
         ODMR signal data in two columns: ODMR signal intensity and microwave frequency.
     '''
+    check_directory = os.path.isdir(folder_name)
+    if not check_directory:
+        os.makedirs(folder_name)
     timestamp = str(datetime.datetime.now())
     timestamp = timestamp.replace(":","-")
     timestamp = timestamp.replace(" ","_")
-    filename1="test_data_rp1/test_{0:s}_{1:s}_{2:s}.dat".format(s1,s2,timestamp)
+    filename1="{0:s}/{1:s}_{2:s}_{3:s}.dat".format(folder_name,s1,s2,timestamp)
 
     f1 = open(filename1, 'w+')
     for i2 in range(len(x)):
@@ -139,7 +142,7 @@ def write_file_log(s1,s2):
     return
 
 
-def scan_peak(f0, dev, step_size, avg1, avg2, level, noise, write, data_name):
+def scan_peak(f0, dev, step_size, avg1, avg2, level, noise, write, data_name,folder_name):
     '''
     Scan one ODMR peak:
         f0 - scan central frequency
@@ -193,7 +196,7 @@ def scan_peak(f0, dev, step_size, avg1, avg2, level, noise, write, data_name):
             average_chan1[i]=vmean_sum2/averages1
 
     if write:
-        write_file(frequency_chan[2:-2],average_chan1[2:-2],data_name,"dev{0:.1f}_peak{1:.1f}".format(dev,f0))
+        write_file(frequency_chan[2:-2],average_chan1[2:-2],folder_name,data_name,"dev{0:.1f}_peak{1:.1f}".format(dev,f0))
 
     return frequency_chan[2:-2], average_chan1[2:-2]
 
@@ -230,10 +233,10 @@ def microwave_generator_warmup():
     print(".")
     for _ in range(warmup):
         level = get_baseline(2900,10)
-        scan_peak(2600,20,2,8,1,level,10,0,"")
-        scan_peak(2800,20,2,8,1,level,10,0,"")
-        scan_peak(3300,20,2,8,1,level,10,0,"")
-        scan_peak(3400,20,2,8,1,level,10,0,"")
+        scan_peak(2600,20,2,8,1,level,10,0,"","")
+        scan_peak(2800,20,2,8,1,level,10,0,"","")
+        scan_peak(3300,20,2,8,1,level,10,0,"","")
+        scan_peak(3400,20,2,8,1,level,10,0,"","")
         print("#", end="", flush=True)
 
     print("\n`",end="",flush=True)
@@ -299,11 +302,6 @@ print("{0:s}\t".format(temp_error))
 # ----
 
 # Menu
-B1 = {}
-B1x = {}
-B1y = {}
-B1z = {}
-i1 = 0
 warmup = 32
 
 while True:
@@ -317,7 +315,7 @@ while True:
         microwave_generator_warmup()
         print("Running full ODMR peak scan.\n")
         level = get_baseline(2900,10)
-        full_scan_mw, full_scan_odmr = scan_peak(2905,600,1,64,1,level,10,0,"")
+        full_scan_mw, full_scan_odmr = scan_peak(2905,600,1,64,1,level,10,0,"","")
         write_file(full_scan_mw, full_scan_odmr, "full_scan")
         B = 200
         theta = 80
@@ -352,18 +350,27 @@ while True:
         f8 = frequencies0[3]
         print("Done.\n")
         # Set meassuring parameters
+        foldername1 = str(input("Input directory name: "))
         log_file_name = str(input("Input log file name for this measurement: "))
         timestamp = str(datetime.datetime.now())
         timestamp = timestamp.replace(":","-")
         timestamp = timestamp.replace(" ","_")
-        log_file_name1 = log_file_name+"_"+timestamp
-        dev0=20 # Microwave scan width
+        dev0=50 # Microwave scan width
         step=2 # Microwave scan step size in MHz
         a1 = int(input("Input number of ODMR scan averages: "))
         a2=1
         noise=10 # Maximum acceptable noise level
         sets = int(input("Input number of magnetic field meassurements, N = "))
         # ----
+
+        log_file_name += "_avg{0:d}".format(a1)
+        log_file_name1 = log_file_name+"_"+timestamp
+
+        B1 = {}
+        B1x = {}
+        B1y = {}
+        B1z = {}
+        i1 = 0
 
         microwave_generator_warmup()
 
@@ -375,10 +382,10 @@ while True:
             print("\n {0:d}. ".format(i+1), end = "", flush = True)
             level = get_baseline(2900,10)
 
-            peak2_MW, peak2_ODMR = scan_peak(f2,dev0,step,a1,a2,level,noise,1,log_file_name)
-            peak4_MW, peak4_ODMR = scan_peak(f4,dev0,step,a1,a2,level,noise,1,log_file_name)
-            peak6_MW, peak6_ODMR = scan_peak(f6,dev0,step,a1,a2,level,noise,1,log_file_name)
-            peak8_MW, peak8_ODMR = scan_peak(f8,dev0,step,a1,a2,level,noise,1,log_file_name)
+            peak2_MW, peak2_ODMR = scan_peak(f2,dev0,step,a1,a2,level,noise,1,log_file_name,foldername1)
+            peak4_MW, peak4_ODMR = scan_peak(f4,dev0,step,a1,a2,level,noise,1,log_file_name,foldername1)
+            peak6_MW, peak6_ODMR = scan_peak(f6,dev0,step,a1,a2,level,noise,1,log_file_name,foldername1)
+            peak8_MW, peak8_ODMR = scan_peak(f8,dev0,step,a1,a2,level,noise,1,log_file_name,foldername1)
 
             peaks_list = []
 
@@ -455,6 +462,12 @@ while True:
 
         print("\n###########################################################\n")
         # ----
+    elif menu1 == "4":
+        foldername1 = str(input("Input directory name: "))
+        log_file_name = str(input("Input log file name for this measurement: "))
+        microwave_generator_warmup()
+        level = get_baseline(2900,10)
+        scan_peak(2905,600,1,64,1,level,10,1,log_file_name,foldername1)
     elif menu1 == "0":
         exit_application()
     else:
