@@ -104,7 +104,7 @@ def read_values_rp():
     return received_data
 
 
-def write_file(x,y,s):
+def write_file(x,y,s1,s2):
     '''
     Write meassured individual ODMR peak data to file with a timestamp.
     Outputs:
@@ -113,7 +113,7 @@ def write_file(x,y,s):
     timestamp = str(datetime.datetime.now())
     timestamp = timestamp.replace(":","-")
     timestamp = timestamp.replace(" ","_")
-    filename1="test_width_contrast_data/test_{0:s}_{1:s}.dat".format(s,timestamp)
+    filename1="test_data_rp1/test_{0:s}_{1:s}_{2:s}.dat".format(s1,s2,timestamp)
 
     f1 = open(filename1, 'w+')
     for i2 in range(len(x)):
@@ -123,7 +123,23 @@ def write_file(x,y,s):
     return
 
 
-def scan_peak(f0, dev, step_size, avg1, avg2, level, noise, write):
+def write_file_log(s1,s2):
+    '''
+    Write log messages durring the execution of the program
+    Outputs:
+        Log message file
+    '''
+    filename1="test_data_logs/{0:s}.log".format(s1)
+
+    f1 = open(filename1, 'a')
+    #for i2 in range(len(x)):
+    f1.write("%s\n" % (s2))
+    f1.close()
+
+    return
+
+
+def scan_peak(f0, dev, step_size, avg1, avg2, level, noise, write, data_name):
     '''
     Scan one ODMR peak:
         f0 - scan central frequency
@@ -177,7 +193,7 @@ def scan_peak(f0, dev, step_size, avg1, avg2, level, noise, write):
             average_chan1[i]=vmean_sum2/averages1
 
     if write:
-        write_file(frequency_chan[2:-2],average_chan1[2:-2],"dev{0:.1f}_peak{1:.1f}".format(dev,f0))
+        write_file(frequency_chan[2:-2],average_chan1[2:-2],data_name,"dev{0:.1f}_peak{1:.1f}".format(dev,f0))
 
     return frequency_chan[2:-2], average_chan1[2:-2]
 
@@ -214,10 +230,10 @@ def microwave_generator_warmup():
     print(".")
     for _ in range(warmup):
         level = get_baseline(2900,10)
-        scan_peak(2600,20,2,8,1,level,10,0)
-        scan_peak(2800,20,2,8,1,level,10,0)
-        scan_peak(3300,20,2,8,1,level,10,0)
-        scan_peak(3400,20,2,8,1,level,10,0)
+        scan_peak(2600,20,2,8,1,level,10,0,"")
+        scan_peak(2800,20,2,8,1,level,10,0,"")
+        scan_peak(3300,20,2,8,1,level,10,0,"")
+        scan_peak(3400,20,2,8,1,level,10,0,"")
         print("#", end="", flush=True)
 
     print("\n`",end="",flush=True)
@@ -284,9 +300,11 @@ print("{0:s}\t".format(temp_error))
 
 # Menu
 B1 = {}
+B1x = {}
+B1y = {}
+B1z = {}
 i1 = 0
 warmup = 32
-t0=time.time()
 
 while True:
     print("Select:")
@@ -299,7 +317,7 @@ while True:
         microwave_generator_warmup()
         print("Running full ODMR peak scan.\n")
         level = get_baseline(2900,10)
-        full_scan_mw, full_scan_odmr = scan_peak(2905,600,1,64,1,level,10,0)
+        full_scan_mw, full_scan_odmr = scan_peak(2905,600,1,64,1,level,10,0,"")
         write_file(full_scan_mw, full_scan_odmr, "full_scan")
         B = 200
         theta = 80
@@ -334,9 +352,14 @@ while True:
         f8 = frequencies0[3]
         print("Done.\n")
         # Set meassuring parameters
-        dev0=30 # Microwave scan width
+        log_file_name = str(input("Input log file name for this measurement: "))
+        timestamp = str(datetime.datetime.now())
+        timestamp = timestamp.replace(":","-")
+        timestamp = timestamp.replace(" ","_")
+        log_file_name1 = log_file_name+"_"+timestamp
+        dev0=20 # Microwave scan width
         step=2 # Microwave scan step size in MHz
-        a1 = 8 # int(input("Input number of ODMR scan averages: "))
+        a1 = int(input("Input number of ODMR scan averages: "))
         a2=1
         noise=10 # Maximum acceptable noise level
         sets = int(input("Input number of magnetic field meassurements, N = "))
@@ -344,16 +367,18 @@ while True:
 
         microwave_generator_warmup()
 
+        t0=time.time()
+
         print("\n###########################################################")
         for i in range(sets):
             #time.sleep(0.05)
             print("\n {0:d}. ".format(i+1), end = "", flush = True)
             level = get_baseline(2900,10)
 
-            peak2_MW, peak2_ODMR = scan_peak(f2,dev0,step,a1,a2,level,noise,1)
-            peak4_MW, peak4_ODMR = scan_peak(f4,dev0,step,a1,a2,level,noise,1)
-            peak6_MW, peak6_ODMR = scan_peak(f6,dev0,step,a1,a2,level,noise,1)
-            peak8_MW, peak8_ODMR = scan_peak(f8,dev0,step,a1,a2,level,noise,1)
+            peak2_MW, peak2_ODMR = scan_peak(f2,dev0,step,a1,a2,level,noise,1,log_file_name)
+            peak4_MW, peak4_ODMR = scan_peak(f4,dev0,step,a1,a2,level,noise,1,log_file_name)
+            peak6_MW, peak6_ODMR = scan_peak(f6,dev0,step,a1,a2,level,noise,1,log_file_name)
+            peak8_MW, peak8_ODMR = scan_peak(f8,dev0,step,a1,a2,level,noise,1,log_file_name)
 
             peaks_list = []
 
@@ -385,7 +410,12 @@ while True:
 
             Bsens = deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
             print("Bxyz = ({1:.2f}, {2:.2f}, {3:.2f}) G\t\t|B| = {4:.2f} G".format(i1+1,Bsens[0],Bsens[1],Bsens[2],np.sqrt(Bsens[0]*Bsens[0]+Bsens[1]*Bsens[1]+Bsens[2]*Bsens[2])), flush = True)
+            result1 = "{0:.6f}\t{1:.6f}\t{2:.6f}\t{3:.6f}".format(Bsens[0],Bsens[1],Bsens[2],np.sqrt(Bsens[0]*Bsens[0]+Bsens[1]*Bsens[1]+Bsens[2]*Bsens[2]))
+            write_file_log(log_file_name, result1)
             B1[i1] = np.sqrt(Bsens[0]*Bsens[0]+Bsens[1]*Bsens[1]+Bsens[2]*Bsens[2])
+            B1x[i1] = Bsens[0]
+            B1y[i1] = Bsens[1]
+            B1z[i1] = Bsens[2]
             i1 += 1 # add +1 if 4 peaks found successfully
             f2 = peaks_list[0]
             f4 = peaks_list[1]
@@ -398,11 +428,30 @@ while True:
         # Display the results of the magnetic field meassurements
         print("\n-----------------------------------------------------------")
         print("\nTotal time {0:.1f} s    Measurements {1:d}/{2:d} = {3:.0f} %    Rate {4:.2f} Hz".format(t-t0,i1,sets,100.0*i1/sets,sets/(t-t0)))
+        rate1 = "Total time {0:.1f} s    Measurements {1:d}/{2:d} = {3:.0f} %    Rate {4:.2f} Hz".format(t-t0,i1,sets,100.0*i1/sets,sets/(t-t0))
+        write_file_log(log_file_name+"_summary",rate1)
 
         Bmean = np.mean([B1[i] for i in range(i1)])
         Bstd = np.std([B1[i] for i in range(i1)])
+        Bxmean = np.mean([B1x[i] for i in range(i1)])
+        Bxstd = np.std([B1x[i] for i in range(i1)])
+        Bymean = np.mean([B1y[i] for i in range(i1)])
+        Bystd = np.std([B1y[i] for i in range(i1)])
+        Bzmean = np.mean([B1z[i] for i in range(i1)])
+        Bzstd = np.std([B1z[i] for i in range(i1)])
 
         print("\nB = ({0:.2f} \u00B1 {1:.2f}) G\trB = {2:.2f} %".format(Bmean, Bstd, (Bstd/Bmean)*100))
+        std_error1 = "B = ({0:.2f} \u00B1 {1:.2f}) G\trB = {2:.2f} %".format(Bmean, Bstd, (Bstd/Bmean)*100)
+        print("\nBx = ({0:.2f} \u00B1 {1:.2f}) G\trBx = {2:.2f} %".format(Bxmean, Bxstd, np.abs((Bxstd/Bxmean)*100)))
+        std_error1x = "Bx = ({0:.2f} \u00B1 {1:.2f}) G\trBx = {2:.2f} %".format(Bxmean, Bxstd, np.abs((Bxstd/Bxmean)*100))
+        print("\nBy = ({0:.2f} \u00B1 {1:.2f}) G\trBy = {2:.2f} %".format(Bymean, Bystd, np.abs((Bystd/Bymean)*100)))
+        std_error1y = "By = ({0:.2f} \u00B1 {1:.2f}) G\trBy = {2:.2f} %".format(Bymean, Bystd, np.abs((Bystd/Bymean)*100))
+        print("\nBz = ({0:.2f} \u00B1 {1:.2f}) G\trBz = {2:.2f} %".format(Bzmean, Bzstd, np.abs((Bzstd/Bzmean)*100)))
+        std_error1z = "Bz = ({0:.2f} \u00B1 {1:.2f}) G\trBz = {2:.2f} %".format(Bzmean, Bzstd, np.abs((Bzstd/Bzmean)*100))
+        write_file_log(log_file_name+"_summary",std_error1)
+        write_file_log(log_file_name+"_summary",std_error1x)
+        write_file_log(log_file_name+"_summary",std_error1y)
+        write_file_log(log_file_name+"_summary",std_error1z)
 
         print("\n###########################################################\n")
         # ----
