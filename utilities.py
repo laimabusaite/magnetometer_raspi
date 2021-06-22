@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import math
 
@@ -47,6 +48,13 @@ def gauss(x, x0, amplitude, gamma):
     """ Return Gaussian line shape at x with HWHM alpha """
     return amplitude * np.sqrt(4 * np.log(2) / np.pi) / gamma * np.exp(-((x - x0) / gamma) ** 2 * 4 * np.log(2))
 
+def gauss_curve(omega, omega_tr, ampl_tr, g):
+    res = np.zeros(len(omega))
+    for i in range(len(omega_tr)):
+        if abs(ampl_tr[i]) > 0:
+            res += abs(gauss(omega, omega_tr[i], ampl_tr[i], g))
+    return res
+
 
 def lorentz(x, x0, amplitude, gamma, y0=0):
     """ Return Lorentzian line shape at x with HWHM gamma """
@@ -70,3 +78,12 @@ def asymetrical_voigt_curve(omega, omega_tr, ampl_tr, g, asym_coef=0, fraction=0
         if np.real(ampl_tr[i]) > 0:
             res += abs(asymetrical_voigt(omega, np.real(omega_tr[i]), np.real(ampl_tr[i]), g, asym_coef, fraction))
             # pri
+    return res
+
+if __name__ == '__main__':
+
+    x = np.linspace(2800, 3000, 1801)
+    y = asymetrical_voigt_curve(x, [2870], [1], 5, asym_coef=0, fraction=1)
+
+    plt.plot(x,y)
+    plt.show()

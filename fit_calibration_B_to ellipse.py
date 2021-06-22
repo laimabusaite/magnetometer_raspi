@@ -13,7 +13,7 @@ from fit_ellipse import *
 if __name__ == '__main__':
 
     phi_tilted = 20
-    theta_tilted = 30
+    theta_tilted = 0
     filedir = f'fitted_B_angle_clean/phi_axis={phi_tilted}_theta_axis={theta_tilted}'
 
     # filename_list = [f'axis_idx={idx_axis}' for idx_axis in range(3)]

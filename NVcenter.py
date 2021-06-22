@@ -76,6 +76,8 @@ class NVcenter(object):
     def nv_lorentz(self, omega, g_lor):
         self.calculatePeaks(omega)
         res = lor_curve(omega, self.frequencies, self.amplitudes, g_lor)
+        # res = gauss_curve(omega, self.frequencies, self.amplitudes, g_lor)
+        # res = asymetrical_voigt_curve(omega, self.frequencies, self.amplitudes, g_lor, asym_coef=0, fraction=0.9)
         try:
             self.res = res / max(res)
             return self.res
