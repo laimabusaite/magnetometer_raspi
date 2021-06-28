@@ -80,6 +80,29 @@ def asymetrical_voigt_curve(omega, omega_tr, ampl_tr, g, asym_coef=0, fraction=0
             # pri
     return res
 
+def amper2gauss(current, axis):
+    x_list = [0, 'x', 'X']
+    y_list = [1, 'y', 'Y']
+    z_list = [2, 'z', 'Z']
+    # print(current, axis)
+
+    if axis in x_list:
+        m = 1.086561069
+        b = 0.024495759
+    elif axis in y_list:
+        m = 0.892602592
+        b = 0.11899291
+    elif axis in z_list:
+        m = 0.810370347
+        b = 0.003419481
+    else:
+        print('invalid axis name')
+        m = 0
+        b = 0
+
+    # print(m, b)
+    return (m * current + b) * 10.
+
 if __name__ == '__main__':
 
     x = np.linspace(2800, 3000, 1801)

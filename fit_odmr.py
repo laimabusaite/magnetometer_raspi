@@ -137,7 +137,7 @@ def normalize_data(x_data, y_data, debug=False):
     # normalized odmr
     y_norm = 1. - (y_data - min(y_data)) / (max(y_data) - min(y_data))
     # y_base = y_norm
-    y_base = savgol_filter(y_norm, 11, 2)
+    y_base = savgol_filter(y_norm, 13, 2)
 
     min_distance_min = len(x_data) / (max(x_data) - min(x_data)) * 40
     peaks_min, properties_min = find_peaks(-y_base, distance=min_distance_min)
@@ -152,11 +152,12 @@ def normalize_data(x_data, y_data, debug=False):
     y_smooth = savgol_filter(y_norm - wavelet_min, 11, 2)
 
     min_distance = len(x_data) / (max(x_data) - min(x_data)) * 50
-    height = 0.05  # (max(-dataframe['ODMR']) - min(-dataframe['ODMR'])) * 0.1
+    height = 0.1 # 0.055  # (max(-dataframe['ODMR']) - min(-dataframe['ODMR'])) * 0.1
     min_width = len(x_data) / (max(x_data) - min(x_data)) * 5
     max_width = len(x_data) / (max(x_data) - min(x_data)) * 15
     peaks, properties = find_peaks(y_smooth, distance=min_distance,
                                    height=height)  # , width=[min_width,max_width])
+    # peaks, properties = find_peaks(y_smooth, prominence=0.004, width=[5, 25])
 
     peak_positions = np.array(x_data[peaks])
     peak_amplitudes = np.array(y_smooth[peaks])
@@ -209,6 +210,10 @@ def fit_full_odmr(x_data, y_data,
 
     # normalize odmr
     y_unitary = normalize_data(x_data, y_data, debug=debug)
+    min_distance = len(x_data) / (max(x_data) - min(x_data)) * 50
+    height = 0.5
+    peaks_exp, properties_exp = find_peaks(y_unitary, distance=min_distance,
+                                   height=height)
 
     # define NV center:
     nv_for_fit = NVsetForFitting()
@@ -273,6 +278,16 @@ def fit_full_odmr(x_data, y_data,
                               varyMz=True, varyFraction=True, save_filename=save_filename, save=save)
     print('Result voigt')
     print(nv_for_fit.fitResultLorentz.best_values)
+
+    min_distance = len(x_data) / (max(x_data) - min(x_data)) * 50
+    height = 0.5
+    peaks_fit, properties_fit = find_peaks(nv_for_fit.fitResultLorentz.best_fit, distance=min_distance,
+                                           height=height)
+    peak_diff = peaks_exp - peaks_fit
+    print('peak diff idx', peak_diff)
+    if (peak_diff > 2).any():
+        print('Optimum values not found. Adjust initial conditions.')
+
     if debug:
         # print('nv_for_fit.fitResultLorentz.fit_report()')
         # print(nv_for_fit.fitResultLorentz.fit_report())
