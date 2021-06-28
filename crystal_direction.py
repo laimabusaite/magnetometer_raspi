@@ -82,8 +82,8 @@ if __name__ == '__main__':
         linepts += datamean
 
         # Verify that everything looks right.
-        ax.scatter3D(*data.T)
-        ax.plot3D(*linepts.T)
+        ax.scatter3D(*data.T, c=f'C{idx}')
+        ax.plot3D(*linepts.T, c=f'C{idx}')
 
     print('axes_coordinates')
     print(axes_coordinates)
@@ -144,7 +144,7 @@ if __name__ == '__main__':
         print(coord_rot)
         axes_coordinates_rotated1[idx] = coord_rot
         linepts_rot1 = coord_rot * np.mgrid[-7:7:2j][:, np.newaxis]
-        ax.plot3D(*linepts_rot1.T)
+        ax.plot3D(*linepts_rot1.T, c=f'C{idx}')
 
     # data_rot = np.zeros_like(data)
     # for idx, vec in enumerate(data):
@@ -152,7 +152,7 @@ if __name__ == '__main__':
 
 
     #x-y projection of rotated axis (z') - determine phi
-    curr = 'CURR_X'
+    curr = 'CURR_Y'
     df_temp = df[df[curr].notnull()].dropna(axis=1)
 
     Bx0 = df_temp[df_temp[curr] == 0]['B_labx'].values[0]
@@ -171,7 +171,7 @@ if __name__ == '__main__':
     axis_X = np.array([1, 0])
     m, b = np.polyfit(x, y, 1)
     y_fit = m * x + b
-    axis_x1 = np.array([1, 1./m])
+    axis_x1 = np.array([1, m])
     axis_x1 /= np.linalg.norm(axis_x1)
     ax1.scatter(x, y)
     ax1.plot(x, y_fit)
@@ -195,6 +195,60 @@ if __name__ == '__main__':
     json.dump(rotation_parameters, a_file)
     a_file.close()
 
+
+
+
+    for idx1, curr in enumerate(curr_list):
+        df_temp = df[df[curr].notnull()].dropna(axis=1)
+        Bx0 = df_temp[df_temp[curr] == 0]['B_labx'].values[0]
+        By0 = df_temp[df_temp[curr] == 0]['B_laby'].values[0]
+        Bz0 = df_temp[df_temp[curr] == 0]['B_labz'].values[0]
+        print(Bx0, By0, Bz0)
+        # print(df_x)
+        df_temp['delta_Bx'] = df_temp['B_labx'] - Bx0
+        df_temp['delta_By'] = df_temp['B_laby'] - By0
+        df_temp['delta_Bz'] = df_temp['B_labz'] - Bz0
+        print(df_temp)
+        x = df_temp['delta_Bx'].values
+        y = df_temp['delta_By'].values
+        z = df_temp['delta_Bz'].values
+        data = np.concatenate((x[:, np.newaxis],
+                               y[:, np.newaxis],
+                               z[:, np.newaxis]),
+                              axis=1)
+        data_rot = np.zeros_like(data)
+        for idx, magn in enumerate(data):
+            data_rot[idx] = rotate(magn, alpha=alpha_deg, phi=phi_deg, theta=theta_deg)
+        print(data_rot)
+
+        # Calculate the mean of the points, i.e. the 'center' of the cloud
+        datamean = data_rot.mean(axis=0)
+        print(datamean)
+
+        # Do an SVD on the mean-centered data.
+        uu, dd, vv = np.linalg.svd(data_rot)
+
+        print(uu)
+        print(dd)
+        print(vv)
+
+
+        # Now vv[0] contains the first principal component, i.e. the direction
+        # vector of the 'best fit' line in the least squares sense.
+
+        # Now generate some points along this best fit line, for plotting.
+
+        # I use -7, 7 since the spread of the data is roughly 14
+        # and we want it to have mean 0 (like the points we did
+        # the svd on). Also, it's a straight line, so we only need 2 points.
+        linepts_rot = vv[0] * np.mgrid[-7:7:2j][:, np.newaxis]
+
+        # shift by the mean to get the line in the right place
+        linepts_rot += datamean
+
+        # Verify that everything looks right.
+        ax.scatter3D(*data_rot.T, c=f'C{idx1}')
+        ax.plot3D(*linepts_rot.T, c=f'C{idx1}')
 
 
     ax.set_xlabel('X')

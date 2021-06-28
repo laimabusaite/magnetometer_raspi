@@ -23,21 +23,7 @@ def generate_noisy_signal(omega, B_lab, D=2870, Mz_array=np.array([0, 0, 0, 0]),
     return noisy_odmr_signal
 
 
-def rotate(vec, theta=0, phi=0, alpha=0):
-    theta = np.radians(theta)
-    phi = np.radians(phi)
-    alpha = np.radians(alpha)
-    Rx = np.array([[1, 0, 0],
-                   [0, np.cos(alpha), -np.sin(alpha)],
-                   [0, np.sin(alpha), np.cos(alpha)]])
-    Ry = np.array([[np.cos(theta), 0, np.sin(theta)],
-                   [0, 1, 0],
-                   [-np.sin(theta), 0, np.cos(theta)]])
-    Rz = np.array([[np.cos(phi), -np.sin(phi), 0],
-                   [np.sin(phi), np.cos(phi), 0],
-                   [0, 0, 1]])
-    rotated_vec = np.dot(Rz, np.dot(Ry, np.dot(Rx, vec)))
-    return rotated_vec
+
 
 
 def calc_R(x, y, xc, yc):

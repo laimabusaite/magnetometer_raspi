@@ -11,7 +11,13 @@ def round_to_decimal(a, round_to=0):
 
 
 def deltaB_from_deltaFrequencies(A_inv, deltaFrequencies):
-    return np.dot(A_inv, deltaFrequencies.T)
+    rotation_angles = {"alpha": 1.9626607183487732, "phi": 20.789077311199208, "theta": 179.4794019370279}
+
+    deltaB = np.dot(A_inv, deltaFrequencies.T)
+
+    rotatedB = rotate(deltaB, alpha=rotation_angles['alpha'], phi=rotation_angles['phi'], theta=rotation_angles['theta'])
+
+    return rotatedB
 
 
 def add_noise(signal, noise_std=1):
@@ -102,6 +108,22 @@ def amper2gauss(current, axis):
 
     # print(m, b)
     return (m * current + b) * 10.
+
+def rotate(vec, theta=0.0, phi=0.0, alpha=0.0):
+    theta = np.radians(theta)
+    phi = np.radians(phi)
+    alpha = np.radians(alpha)
+    Rx = np.array([[1, 0, 0],
+                   [0, np.cos(alpha), -np.sin(alpha)],
+                   [0, np.sin(alpha), np.cos(alpha)]])
+    Ry = np.array([[np.cos(theta), 0, np.sin(theta)],
+                   [0, 1, 0],
+                   [-np.sin(theta), 0, np.cos(theta)]])
+    Rz = np.array([[np.cos(phi), -np.sin(phi), 0],
+                   [np.sin(phi), np.cos(phi), 0],
+                   [0, 0, 1]])
+    rotated_vec = np.dot(Rz, np.dot(Ry, np.dot(Rx, vec)))
+    return rotated_vec
 
 if __name__ == '__main__':
 
