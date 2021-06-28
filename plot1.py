@@ -5,7 +5,7 @@ import numpy as np
 import time
 import os
 
-filenames = sorted(glob.glob("CURR_Y/*.dat"))
+filenames = sorted(glob.glob("test123/*.dat"))
 filenames.sort(key=os.path.getmtime)
 #filenames = filenames[-4*10::1]
 
