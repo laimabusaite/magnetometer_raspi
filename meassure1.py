@@ -354,13 +354,13 @@ while True:
         #microwave_generator_warmup()
         foldername1 = str(input("Input directory name: "))
         log_file_name = str(input("Input log file name for this measurement: "))
-        timestamp = str(datetime.datetime.now())
-        timestamp = timestamp.replace(":","-")
-        timestamp = timestamp.replace(" ","_")
-        log_file_name1 = log_file_name+"_"+timestamp
+        #timestamp = str(datetime.datetime.now())
+        #timestamp = timestamp.replace(":","-")
+        #timestamp = timestamp.replace(" ","_")
+        #log_file_name1 = log_file_name+"_"+timestamp
         print("Running full ODMR peak scan.\n")
         level = get_baseline(2900,10)
-        full_scan_mw, full_scan_odmr = scan_peak(2905,600,2,64,1,level,10,1,log_file_name1,foldername1)
+        full_scan_mw, full_scan_odmr = scan_peak(2905,600,2,64,1,level,10,1,log_file_name,foldername1)
         #write_file(full_scan_mw, full_scan_odmr, "full_scan")
         B = 200
         theta = 80
@@ -434,24 +434,24 @@ while True:
 
             peaks_list = []
 
-            #peaks, amplitudes = detect_peaks(peak2_MW, peak2_ODMR, debug=False)
-            #peaks_list.append(peaks)
-            #peaks, amplitudes = detect_peaks(peak4_MW, peak4_ODMR, debug=False)
-            #peaks_list.append(peaks)
-            #peaks, amplitudes = detect_peaks(peak6_MW, peak6_ODMR, debug=False)
-            #peaks_list.append(peaks)
-            #peaks, amplitudes = detect_peaks(peak8_MW, peak8_ODMR, debug=False)
-            #peaks_list.append(peaks)
+            peaks = detect_peaks(peak2_MW, peak2_ODMR, debug=False)
+            peaks_list.append(peaks)
+            peaks = detect_peaks(peak4_MW, peak4_ODMR, debug=False)
+            peaks_list.append(peaks)
+            peaks = detect_peaks(peak6_MW, peak6_ODMR, debug=False)
+            peaks_list.append(peaks)
+            peaks = detect_peaks(peak8_MW, peak8_ODMR, debug=False)
+            peaks_list.append(peaks)
 
-            c1 = 0.002 # minimum contrast
-            peaks = detect_peaks_weighted(peak2_MW, peak2_ODMR, min_contrast = c1)
-            peaks_list.append(peaks)
-            peaks = detect_peaks_weighted(peak4_MW, peak4_ODMR, min_contrast = c1)
-            peaks_list.append(peaks)
-            peaks = detect_peaks_weighted(peak6_MW, peak6_ODMR, min_contrast = c1)
-            peaks_list.append(peaks)
-            peaks = detect_peaks_weighted(peak8_MW, peak8_ODMR, min_contrast = c1)
-            peaks_list.append(peaks)
+            #c1 = 0.002 # minimum contrast
+            #peaks = detect_peaks_weighted(peak2_MW, peak2_ODMR, min_contrast = c1)
+            #peaks_list.append(peaks)
+            #peaks = detect_peaks_weighted(peak4_MW, peak4_ODMR, min_contrast = c1)
+            #peaks_list.append(peaks)
+            #peaks = detect_peaks_weighted(peak6_MW, peak6_ODMR, min_contrast = c1)
+            #peaks_list.append(peaks)
+            #peaks = detect_peaks_weighted(peak8_MW, peak8_ODMR, min_contrast = c1)
+            #peaks_list.append(peaks)
 
             peaks_list = np.array(peaks_list).flatten()
             if (peaks_list == 0).any():
