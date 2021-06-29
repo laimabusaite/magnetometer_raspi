@@ -10,8 +10,10 @@ import utilities
 
 if __name__ == '__main__':
 
-    filedir = 'test_data_rp'
-    filenames = sorted(glob.glob(f'{filedir}/test_full_scan*.dat'))
+    # filedir = 'test_data_rp'
+    # filedir = 'udp_test_full'
+    filedir = 'udp_test_fit_1'
+    filenames = sorted(glob.glob(f'{filedir}/*dev600*.dat'))
     fullscan_filename = filenames[-1]
     print(fullscan_filename)
     #import full scan
@@ -20,10 +22,12 @@ if __name__ == '__main__':
 
     x_data_full = dataframe_full['MW']
     y_data_full = dataframe_full['ODMR']
+
     # peak_positions, peak_amplitudes = dp.detect_peaks_simple(x_data, y_data, height=0.1, debug=False)
-    peak_positions, peak_amplitudes = dp.detect_peaks_cwt(x_data_full, y_data_full, widthMHz=np.array([10]), min_snr=1,
-                                                          debug=False)
-    plt.plot(x_data_full, y_data_full, lw=2, c='k', label='fullscan')
+    # peak_positions, peak_amplitudes = dp.detect_peaks_cwt(x_data_full, y_data_full, widthMHz=np.array([10]), min_snr=1,
+    #                                                       debug=False)
+    peak_positions = dp.detect_peaks(x_data_full, y_data_full, debug=False)
+
     # plt.scatter(peak_positions, peak_amplitudes, c='k')
 
     B = 200
@@ -43,6 +47,12 @@ if __name__ == '__main__':
         "Mz4"]])
     B_lab = np.array([parameters["B_labx"], parameters["B_laby"], parameters[
         "B_labz"]])
+
+    y_data_full = fit_odmr.normalize_data(x_data_full, y_data_full, debug=False)
+
+    plt.figure()
+    plt.plot(x_data_full, y_data_full, lw=2, c='k', label='fullscan')
+    # plt.scatter(peak_positions, 1, c='k')
 
     # NV center orientation in laboratory frame
     # (100)
@@ -66,10 +76,11 @@ if __name__ == '__main__':
         y_data = dataframe_full[fr_range]['ODMR']
         # peak_positions, peak_amplitudes = dp.detect_peaks_simple(x_data, y_data, height=0.1, debug=False)
         # peak_positions, peak_amplitudes = dp.detect_peaks_cwt(x_data, y_data, widthMHz=np.array([10]), min_snr=1, debug=False)
-        peak, peak_amplitudes = dp.detect_peaks(x_data, y_data, debug=False)
+        peak = dp.detect_peaks(x_data, y_data, debug=False)
+        # peak = dp.detect_peaks_weighted(x_data, y_data)
         print(peak)
         # plt.plot(x_data, y_data, lw=2, c='k', label='fullscan')
-        plt.scatter(peak, peak_amplitudes, c='k')
+        plt.scatter(peak, 1, c='k')
 
         # for peak in peak_positions:
         if 2610 <= peak <= 2630:
@@ -81,12 +92,14 @@ if __name__ == '__main__':
         elif 3370 <= peak <= 3390:
             fr8 = peak
 
+
+
     fr2_list = []
     fr4_list = []
     fr6_list = []
     fr8_list = []
-    filedir = 'test_width_contrast_data'
-    filenames = sorted(glob.glob(f'{filedir}/*.dat'))
+    # filedir = 'test_width_contrast_data'
+    filenames = sorted(glob.glob(f'{filedir}/fit*.dat'))
     print(filenames)
     for filename in filenames:
         dataframe = dp.import_data(filename)
@@ -94,12 +107,15 @@ if __name__ == '__main__':
 
         x_data = dataframe['MW']
         y_data = dataframe['ODMR']
-        plt.plot(x_data, y_data)
+
 
         # peak_positions, peak_amplitudes = dp.detect_peaks_cwt(x_data, y_data, widthMHz=np.array([5]), min_snr=1,
         #                                                       debug=False)
-        peak, peak_amplitudes = dp.detect_peaks(x_data, y_data, debug=False)
-        plt.scatter(peak, peak_amplitudes)
+        peak = dp.detect_peaks(x_data, y_data, debug=False)
+        # peak = dp.detect_peaks_weighted(x_data, y_data)
+        y_data = 1. - (y_data - min(y_data)) / (max(y_data) - min(y_data))
+        plt.plot(x_data, y_data)
+        plt.scatter(peak, max(y_data))
         # for peak in peak_positions:
         if 2610 <= peak <= 2630:
             fr2_list.append(peak)
@@ -160,31 +176,35 @@ if __name__ == '__main__':
     B_labz = B_tot[2]
     glor = parameters['glor']
     fraction = parameters['fraction']
-    y_data2 = nv_fit.sum_odmr_voigt(x_data_full,
+    y_data2_norm = nv_fit.sum_odmr_voigt(x_data_full,
                                     B_labx=B_labx, B_laby=B_laby, B_labz=B_labz,
                                     glor=glor, D=parameters['D'],
                                     Mz1=parameters['Mz1'], Mz2=parameters['Mz2'], Mz3=parameters['Mz3'],
                                     Mz4=parameters['Mz4'], fraction=fraction)
 
-    y_data2 = max(y_data_full) - (max(y_data_full) - min(y_data_full)) * y_data2
+    y_data2 = max(dataframe_full['ODMR']) - (max(dataframe_full['ODMR']) - min(dataframe_full['ODMR'])) * y_data2_norm
     dataframe_full['ODMR_calc2'] = y_data2
 
-    plt.plot(x_data_full, y_data2, c='r')
+
+    plt.plot(x_data_full, y_data2_norm, c='r')
 
     for fr_range in fr_range_list:
         x_data = dataframe_full[fr_range]['MW']
         y_data = dataframe_full[fr_range]['ODMR_calc2']
+
         # peak_positions, peak_amplitudes = dp.detect_peaks_simple(x_data, y_data, height=0.1, debug=False)
         # peak_positions, peak_amplitudes = dp.detect_peaks_cwt(x_data, y_data, widthMHz=np.array([10]), min_snr=1, debug=False)
-        peak, peak_amplitudes = dp.detect_peaks(x_data, y_data, debug=False)
+        peak = dp.detect_peaks(x_data, y_data, debug=False)
+        # peak = dp.detect_peaks_weighted(x_data, y_data)
         # print(peak)
         # plt.plot(x_data, y_data, lw=2, c='k', label='fullscan')
-        plt.scatter(peak, peak_amplitudes, c='k')
+        y_data = 1. - (y_data - min(y_data)) / (max(y_data) - min(y_data))
+        plt.scatter(peak, max(y_data), c='r')
 
         # for peak in peak_positions:
         if 2610 <= peak <= 2630:
             fr2_2 = peak
-        elif 2880 <= peak <=2900:
+        elif 2880 <= peak <= 2900:
             fr4_2 = peak
         elif 3220 <= peak <= 3240:
             fr6_2 = peak

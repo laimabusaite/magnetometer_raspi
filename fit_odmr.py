@@ -168,6 +168,7 @@ def normalize_data(x_data, y_data, debug=False):
     y_unitary = y_smooth / wavelet
 
     if debug:
+        print('normalize_data debug')
         print(peaks)
         print(peak_positions)
         print(peak_amplitudes)
@@ -283,6 +284,7 @@ def fit_full_odmr(x_data, y_data,
     height = 0.5
     peaks_fit, properties_fit = find_peaks(nv_for_fit.fitResultLorentz.best_fit, distance=min_distance,
                                            height=height)
+    print(peaks_exp, peaks_fit)
     peak_diff = peaks_exp - peaks_fit
     print('peak diff idx', peak_diff)
     if (peak_diff > 2).any():
