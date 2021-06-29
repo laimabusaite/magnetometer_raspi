@@ -91,7 +91,7 @@ def detect_peaks(x_data, y_data, debug=False):
         peak_amplitudes = 0
         print(e)
 
-    return peak_positions, peak_amplitudes
+    return peak_positions
 
 
 def detect_peaks_simple(x_data, y_data, height=None, debug=False):
