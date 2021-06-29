@@ -24,6 +24,9 @@ import string
 
 import fit_odmr
 
+import socket
+
+
 def exit_application():
     # Turning off the microwave generator and closing communication serial ports
     print("\nSHUT DOWN")
@@ -47,6 +50,8 @@ def exit_application():
     print("Close UART port\t\t",ser_uart.close())
     print("UART port is open\t\t",ser_uart.is_open)
     print()
+
+    s.close()
 
     #GPIO.cleanup()
     spi.close()
@@ -102,6 +107,25 @@ def read_values_rp():
             print("String to float error.\n", flush = True)
 
     return received_data
+
+
+def receive_udp_data():
+    #print("{0:s}".format(data))
+    get_data = 1
+    while get_data:
+        try:
+            data, addr = s.recvfrom(16)
+            data = data.decode("UTF-8")
+            data = float(data)
+            if ((data > 0.8) and (data < 1.6)):
+                get_data = 0
+            else:
+                print(".", flush = True) #Wrong UDP data
+
+        except:
+            print("String to float error.\n", flush = True)
+
+    return data
 
 
 def write_file(x,y,folder_name,s1,s2=""):
@@ -177,7 +201,7 @@ def scan_peak(f0, dev, step_size, avg1, avg2, level, noise, write, data_name,fol
             vmean_sum1=0
             for j in range(averages2):
                 while True:
-                    vmean[j] = read_values_rp()
+                    vmean[j] = receive_udp_data() #read_values_rp()
                     if (vmean[j]<level*(100+noise)/100) and (vmean[j]>level*(100-noise)/100):
                         vmean_sum1+=vmean[j]
                         break
@@ -218,7 +242,7 @@ def get_baseline(f0,points):
     vmean_sum1=0
     vmean=[0 for i1 in range(points)]
     for i in range(points):
-        vmean[i] = read_values_rp()
+        vmean[i] = receive_udp_data() #read_values_rp()
         vmean_sum1+=vmean[i]
 
     return vmean_sum1/points
@@ -278,6 +302,20 @@ time.sleep(sleeptime)
 print("Port is open\t\t",ser.is_open)
 # ----
 
+# Set up the UDP data transfer settings
+host = "192.168.0.102" # "169.254.77.253" # "169.254.191.69"
+port = 4005
+
+#server = ("169.254.191.69", 4000)
+server = ("192.168.0.101", 8080)
+
+s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+s.bind((host, port))
+
+message = input("mesage: ")
+s.sendto(message.encode("UTF-8"), server)
+# ----
+
 # Setting the microwave power in dBm
 amp=15.0
 
@@ -309,14 +347,21 @@ while True:
     print("1 - Run calibration scan, setting all external magnetic field to zero")
     print("2 - Run calibration scan, maintaining all external magnetic field (get bias magnetic field of the device)")
     print("3 - Run N continious meassurements of magnetic field")
+    print("4 - Run full scan")
     print("0 - Exit")
     menu1 = input("->")
     if menu1 == "1":
-        microwave_generator_warmup()
+        #microwave_generator_warmup()
+        foldername1 = str(input("Input directory name: "))
+        log_file_name = str(input("Input log file name for this measurement: "))
+        timestamp = str(datetime.datetime.now())
+        timestamp = timestamp.replace(":","-")
+        timestamp = timestamp.replace(" ","_")
+        log_file_name1 = log_file_name+"_"+timestamp
         print("Running full ODMR peak scan.\n")
         level = get_baseline(2900,10)
-        full_scan_mw, full_scan_odmr = scan_peak(2905,600,1,64,1,level,10,0,"","")
-        write_file(full_scan_mw, full_scan_odmr, "full_scan")
+        full_scan_mw, full_scan_odmr = scan_peak(2905,600,2,64,1,level,10,1,log_file_name1,foldername1)
+        #write_file(full_scan_mw, full_scan_odmr, "full_scan")
         B = 200
         theta = 80
         phi = 20
@@ -355,7 +400,7 @@ while True:
         timestamp = str(datetime.datetime.now())
         timestamp = timestamp.replace(":","-")
         timestamp = timestamp.replace(" ","_")
-        dev0=50 # Microwave scan width
+        dev0=30 # Microwave scan width
         step=2 # Microwave scan step size in MHz
         a1 = int(input("Input number of ODMR scan averages: "))
         a2=1
@@ -372,7 +417,7 @@ while True:
         B1z = {}
         i1 = 0
 
-        microwave_generator_warmup()
+        #microwave_generator_warmup()
 
         t0=time.time()
 
@@ -465,7 +510,7 @@ while True:
     elif menu1 == "4":
         foldername1 = str(input("Input directory name: "))
         log_file_name = str(input("Input log file name for this measurement: "))
-        microwave_generator_warmup()
+        #microwave_generator_warmup()
         level = get_baseline(2900,10)
         scan_peak(2905,600,1,64,1,level,10,1,log_file_name,foldername1)
     elif menu1 == "0":
