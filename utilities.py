@@ -12,10 +12,13 @@ def round_to_decimal(a, round_to=0):
 
 def deltaB_from_deltaFrequencies(A_inv, deltaFrequencies):
     rotation_angles = {"alpha": 1.9626607183487732, "phi": 20.789077311199208, "theta": 179.4794019370279}
+    alpha = rotation_angles['alpha']  # rotate around x
+    phi = rotation_angles['phi'] + 180  # rotate around z
+    theta = rotation_angles['theta'] - 180.0  # rotate around y
 
     deltaB = np.dot(A_inv, deltaFrequencies.T)
 
-    rotatedB = rotate(deltaB, alpha=rotation_angles['alpha'], phi=rotation_angles['phi'], theta=rotation_angles['theta'])
+    rotatedB = rotate(deltaB, alpha=alpha, phi=phi, theta=theta)
 
     return rotatedB
 
@@ -54,6 +57,7 @@ def gauss(x, x0, amplitude, gamma):
     """ Return Gaussian line shape at x with HWHM alpha """
     return amplitude * np.sqrt(4 * np.log(2) / np.pi) / gamma * np.exp(-((x - x0) / gamma) ** 2 * 4 * np.log(2))
 
+
 def gauss_curve(omega, omega_tr, ampl_tr, g):
     res = np.zeros(len(omega))
     for i in range(len(omega_tr)):
@@ -86,6 +90,7 @@ def asymetrical_voigt_curve(omega, omega_tr, ampl_tr, g, asym_coef=0, fraction=0
             # pri
     return res
 
+
 def amper2gauss(current, axis):
     x_list = [0, 'x', 'X']
     y_list = [1, 'y', 'Y']
@@ -109,6 +114,7 @@ def amper2gauss(current, axis):
     # print(m, b)
     return (m * current + b) * 10.
 
+
 def rotate(vec, theta=0.0, phi=0.0, alpha=0.0):
     theta = np.radians(theta)
     phi = np.radians(phi)
@@ -125,10 +131,10 @@ def rotate(vec, theta=0.0, phi=0.0, alpha=0.0):
     rotated_vec = np.dot(Rz, np.dot(Ry, np.dot(Rx, vec)))
     return rotated_vec
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     x = np.linspace(2800, 3000, 1801)
     y = asymetrical_voigt_curve(x, [2870], [1], 5, asym_coef=0, fraction=1)
 
-    plt.plot(x,y)
+    plt.plot(x, y)
     plt.show()
