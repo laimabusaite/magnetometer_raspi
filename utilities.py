@@ -17,7 +17,7 @@ def deltaB_from_deltaFrequencies(A_inv, deltaFrequencies):
 
     rotatedB = rotate(deltaB, alpha=rotation_angles['alpha'], phi=rotation_angles['phi'], theta=rotation_angles['theta'])
 
-    return rotatedB
+    return  rotatedB
 
 
 def add_noise(signal, noise_std=1):

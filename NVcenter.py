@@ -180,6 +180,30 @@ class NVcenterSet(object):
 
         return sum_odmr
 
+    def sum_odmr_voigt(self, x, glor, fraction):
+        asym_coef = 0
+        # fraction = 0.9
+        # B_lab = np.array([B_labx, B_laby, B_labz])
+        # Mz_array = np.array([Mz1, Mz2, Mz3, Mz4])
+        B = np.linalg.norm(self.B_lab)
+        ODMR = np.empty(4, dtype='object')
+        for m in range(4):
+            cos = np.dot(self.B_lab, self.rNV[m]) / (np.linalg.norm(self.B_lab) * np.linalg.norm(self.rNV[m]))
+            if cos >= 1.0:
+                cos = 1.0
+            thetaBnv = np.arccos(cos) * 180 / np.pi
+            phiBnv = 0
+            Bcarnv = CartesianVector(B, thetaBnv, phiBnv)
+            # self.nvlist[m].setNVparameters(D=D, Mz=Mz_array[m])
+            # self.nvlist[m].setMagnetic(Bx=Bcarnv[0], By=Bcarnv[1], Bz=Bcarnv[2])
+            # ODMR[m] = self.nvlist[m].nv_lorentz(x, glor)
+            ODMR[m] = self.nvlist[m].nv_pseudo_voigt(x, glor, asym_coef=asym_coef, fraction=fraction)
+
+        sum_odmr = ODMR[0] + ODMR[1] + ODMR[2] + ODMR[3]
+        sum_odmr /= max(sum_odmr)
+
+        return sum_odmr
+
     def calculateAinv(self, B0, Bsens=np.array([0, 0, 0]), omega_limits=np.array([2000, 3800]), dB=0.001):
         '''
         B0 - constant bias magnetic field
