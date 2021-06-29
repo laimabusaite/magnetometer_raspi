@@ -351,11 +351,17 @@ while True:
     print("0 - Exit")
     menu1 = input("->")
     if menu1 == "1":
-        microwave_generator_warmup()
+        #microwave_generator_warmup()
+        foldername1 = str(input("Input directory name: "))
+        log_file_name = str(input("Input log file name for this measurement: "))
+        timestamp = str(datetime.datetime.now())
+        timestamp = timestamp.replace(":","-")
+        timestamp = timestamp.replace(" ","_")
+        log_file_name1 = log_file_name+"_"+timestamp
         print("Running full ODMR peak scan.\n")
         level = get_baseline(2900,10)
-        full_scan_mw, full_scan_odmr = scan_peak(2905,600,2,64,1,level,10,0,"","")
-        write_file(full_scan_mw, full_scan_odmr, "full_scan")
+        full_scan_mw, full_scan_odmr = scan_peak(2905,600,2,64,1,level,10,1,log_file_name1,foldername1)
+        #write_file(full_scan_mw, full_scan_odmr, "full_scan")
         B = 200
         theta = 80
         phi = 20
@@ -411,7 +417,7 @@ while True:
         B1z = {}
         i1 = 0
 
-        microwave_generator_warmup()
+        #microwave_generator_warmup()
 
         t0=time.time()
 
@@ -504,7 +510,7 @@ while True:
     elif menu1 == "4":
         foldername1 = str(input("Input directory name: "))
         log_file_name = str(input("Input log file name for this measurement: "))
-        microwave_generator_warmup()
+        #microwave_generator_warmup()
         level = get_baseline(2900,10)
         scan_peak(2905,600,1,64,1,level,10,1,log_file_name,foldername1)
     elif menu1 == "0":
