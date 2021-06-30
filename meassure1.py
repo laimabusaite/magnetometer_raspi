@@ -307,12 +307,13 @@ host = "192.168.0.102" # "169.254.77.253" # "169.254.191.69"
 port = 4005
 
 #server = ("169.254.191.69", 4000)
-server = ("192.168.0.101", 8080)
+server = ("192.168.0.100", 8080)
 
 s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 s.bind((host, port))
 
-message = input("mesage: ")
+print()
+message = input("Send identification address over UDP, ENTER")
 s.sendto(message.encode("UTF-8"), server)
 # ----
 
@@ -360,7 +361,7 @@ while True:
         #log_file_name1 = log_file_name+"_"+timestamp
         print("Running full ODMR peak scan.\n")
         level = get_baseline(2900,10)
-        full_scan_mw, full_scan_odmr = scan_peak(2905,600,2,64,1,level,10,1,log_file_name,foldername1)
+        full_scan_mw, full_scan_odmr = scan_peak(2905,600,1,64,1,level,10,1,log_file_name,foldername1)
         #write_file(full_scan_mw, full_scan_odmr, "full_scan")
         B = 200
         theta = 80
@@ -400,8 +401,8 @@ while True:
         timestamp = str(datetime.datetime.now())
         timestamp = timestamp.replace(":","-")
         timestamp = timestamp.replace(" ","_")
-        dev0=30 # Microwave scan width
-        step=2 # Microwave scan step size in MHz
+        dev0=20 # Microwave scan width
+        step=1 # Microwave scan step size in MHz
         a1 = int(input("Input number of ODMR scan averages: "))
         a2=1
         noise=10 # Maximum acceptable noise level
@@ -461,6 +462,7 @@ while True:
             delta_frequencies = frequencies0 - peaks_list
 
             Bsens = deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
+            Bsens = Bsens*(-1)
             print("Bxyz = ({1:.2f}, {2:.2f}, {3:.2f}) G\t\t|B| = {4:.2f} G".format(i1+1,Bsens[0],Bsens[1],Bsens[2],np.sqrt(Bsens[0]*Bsens[0]+Bsens[1]*Bsens[1]+Bsens[2]*Bsens[2])), flush = True)
             result1 = "{0:.6f}\t{1:.6f}\t{2:.6f}\t{3:.6f}".format(Bsens[0],Bsens[1],Bsens[2],np.sqrt(Bsens[0]*Bsens[0]+Bsens[1]*Bsens[1]+Bsens[2]*Bsens[2]))
             write_file_log(foldername1,log_file_name, result1)
@@ -484,13 +486,13 @@ while True:
         write_file_log(foldername1,log_file_name+"_summary",rate1)
 
         Bmean = np.mean([B1[i] for i in range(i1)])
-        Bstd = np.std([B1[i] for i in range(i1)])
+        Bstd = np.std([B1[i] for i in range(i1)])/np.sqrt(i1-1)
         Bxmean = np.mean([B1x[i] for i in range(i1)])
-        Bxstd = np.std([B1x[i] for i in range(i1)])
+        Bxstd = np.std([B1x[i] for i in range(i1)])/np.sqrt(i1-1)
         Bymean = np.mean([B1y[i] for i in range(i1)])
-        Bystd = np.std([B1y[i] for i in range(i1)])
+        Bystd = np.std([B1y[i] for i in range(i1)])/np.sqrt(i1-1)
         Bzmean = np.mean([B1z[i] for i in range(i1)])
-        Bzstd = np.std([B1z[i] for i in range(i1)])
+        Bzstd = np.std([B1z[i] for i in range(i1)])/np.sqrt(i1-1)
 
         print("\nB = ({0:.2f} \u00B1 {1:.2f}) G\trB = {2:.2f} %".format(Bmean, Bstd, (Bstd/Bmean)*100))
         std_error1 = "B = ({0:.2f} \u00B1 {1:.2f}) G\trB = {2:.2f} %".format(Bmean, Bstd, (Bstd/Bmean)*100)

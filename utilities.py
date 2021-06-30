@@ -13,8 +13,8 @@ def round_to_decimal(a, round_to=0):
 def deltaB_from_deltaFrequencies(A_inv, deltaFrequencies):
     rotation_angles = {"alpha": 1.9626607183487732, "phi": 20.789077311199208, "theta": 179.4794019370279}
     alpha = rotation_angles['alpha']  # rotate around x
-    phi = rotation_angles['phi'] + 180  # rotate around z
-    theta = rotation_angles['theta'] - 180.0  # rotate around y
+    phi = rotation_angles['phi']  # rotate around z
+    theta = rotation_angles['theta']  # rotate around y
 
     deltaB = np.dot(A_inv, deltaFrequencies.T)
 
