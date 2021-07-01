@@ -91,8 +91,15 @@ def asymetrical_voigt_curve(omega, omega_tr, ampl_tr, g, asym_coef=0, fraction=0
     return res
 
 def amper2gauss_array(current_x, current_y, current_z):
-    m_list = np.array([1.086561069, 0.892602592, 0.810370347])
-    b_list = np.array([0.024495759, 0.11899291, 0.003419481])
+
+    #florian
+    # m_list = np.array([1.086561069, 0.892602592, 0.810370347]) * 10.
+    # b_list = np.array([0.024495759, 0.11899291, 0.003419481])
+
+    #reinis
+    m_list = np.array([8.4895, 10.177, 7.6793])
+    b_list = np.array([0.0, 0.0, 0.0])
+
 
     # if np.isscalar(current_x):
     #
@@ -104,9 +111,6 @@ def amper2gauss_array(current_x, current_y, current_z):
     B_y = current_y * m_list[1] + b_list[1]
     B_z = current_z * m_list[2] + b_list[2]
 
-    B_x *= 10.
-    B_y *= 10.
-    B_z *= 10.
 
     return B_x, B_y, B_z
 
