@@ -303,7 +303,7 @@ print("Port is open\t\t",ser.is_open)
 # ----
 
 # Set up the UDP data transfer settings
-host = "192.168.0.102" # "169.254.77.253" # "169.254.191.69"
+host = "192.168.0.101" # "169.254.77.253" # "169.254.191.69"
 port = 4005
 
 #server = ("169.254.191.69", 4000)
