@@ -11,8 +11,8 @@ def round_to_decimal(a, round_to=0):
 
 
 def deltaB_from_deltaFrequencies(A_inv, deltaFrequencies):
-    # rotation_angles = {"alpha": 1.9626607183487732, "phi": 20.789077311199208, "theta": 179.4794019370279}
-    rotation_angles = {"alpha": 87.34271435510534, "phi": 3.2800280875516754, "theta": 179.51519807708098}
+    rotation_angles = {"alpha": 1.9626607183487732, "phi": 20.789077311199208, "theta": 179.4794019370279}
+    # rotation_angles = {"alpha": 87.34271435510534, "phi": 3.2800280875516754, "theta": 179.51519807708098}
     alpha = rotation_angles['alpha']  # rotate around x
     phi = rotation_angles['phi']  # rotate around z
     theta = rotation_angles['theta']  # rotate around y
