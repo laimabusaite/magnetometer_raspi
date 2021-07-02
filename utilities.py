@@ -98,8 +98,8 @@ def amper2gauss_array(current_x, current_y, current_z):
     # b_list = np.array([0.024495759, 0.11899291, 0.003419481]) * 10.
 
     #reinis
-    m_list = np.array([8.4895, 10.177, 7.6793])
-    b_list = np.array([0.0, 0.0, 0.0])
+    # m_list = np.array([8.4895, 10.177, 7.6793])
+    # b_list = np.array([0.0, 0.0, 0.0])
 
     #laima
     linear_params = {"slope": [0.0007826239771925043, 0.0009039493509247832, 0.0010428497650549662],
