@@ -1,17 +1,18 @@
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
+# import matplotlib.pyplot as plt
+# import numpy as np
+# import pandas as pd
 
 from fit_odmr import *
-import glob
-import os
+# import glob
+# import os
 from mpl_toolkits.mplot3d import Axes3D
-from Calibrate_without_earth_test import rotate
-from generate_data_rotation import rotate_about_axis
+from utilities import rotate
+# from generate_data_rotation import rotate_about_axis
 
 if __name__ == '__main__':
 
-    filename = 'crystal_axis_calibration/coil_axis_calibration.dat'
+    # filename = 'crystal_axis_calibration/coil_axis_calibration_old.dat'
+    filename = 'new_calibration/coil_axis_calibration.dat'
 
     df = pd.read_csv(filename, index_col=0)
 
@@ -189,7 +190,7 @@ if __name__ == '__main__':
         linepts_rot2 = coord_rot * np.mgrid[-7:7:2j][:, np.newaxis]
         ax.plot3D(*linepts_rot2.T)
 
-    filename_parameters = 'rotation_angles.json'
+    filename_parameters = 'new_calibration/rotation_angles.json'
     rotation_parameters = {'alpha': alpha_deg, 'phi': phi_deg, 'theta': theta_deg}
     a_file = open(filename_parameters, "w")
     json.dump(rotation_parameters, a_file)

@@ -13,22 +13,23 @@ import os
 if __name__ == '__main__':
 
     axes_list = ['X', 'Y', 'Z']
-    foldernames = [f'CURR_{axis}' for axis in axes_list]
+    foldernames = [f'new_calibration/CURR_{axis}' for axis in axes_list]
+    print(foldernames)
 
-    savedir = 'crystal_axis_calibration'
+    savedir = 'new_calibration'# 'crystal_axis_calibration'
     if not os.path.exists(f'{savedir}'):
         os.makedirs(f'{savedir}')
 
     df = pd.DataFrame()
     idx_all = 0
-    for idx_axis, foldername in enumerate(foldernames):
+    for idx_axis, foldername in enumerate(foldernames[:]):
         # foldername = 'CURR_Z'
         axis_name = axes_list[idx_axis]
         other_axes = axes_list[:]
         other_axes.remove(axis_name)
         print(other_axes)
 
-        filenames = sorted(glob.glob(f'{foldername}/full_scan*.dat'))
+        filenames = sorted(glob.glob(f'{foldername}/*.dat'))
 
         print(filenames)
 
@@ -51,7 +52,7 @@ if __name__ == '__main__':
         for idx, filename in enumerate(filenames):
             split_name = re.split('_', filename)
             print(split_name)
-            current_value = float(split_name[5])
+            current_value =  float(split_name[4]) #= float(split_name[5])
             print(current_value)
 
             dataframe = import_data(filename)
