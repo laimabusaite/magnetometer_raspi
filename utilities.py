@@ -94,7 +94,7 @@ def amper2gauss_array(current_x, current_y, current_z):
 
     #florian
     # m_list = np.array([1.086561069, 0.892602592, 0.810370347]) * 10.
-    # b_list = np.array([0.024495759, 0.11899291, 0.003419481])
+    # b_list = np.array([0.024495759, 0.11899291, 0.003419481]) * 10.
 
     #reinis
     m_list = np.array([8.4895, 10.177, 7.6793])
@@ -114,28 +114,15 @@ def amper2gauss_array(current_x, current_y, current_z):
 
     return B_x, B_y, B_z
 
-def amper2gauss(current, axis):
-    x_list = [0, 'x', 'X']
-    y_list = [1, 'y', 'Y']
-    z_list = [2, 'z', 'Z']
-    # print(current, axis)
+def amper2gauss(current_list):
 
-    if axis in x_list:
-        m = 1.086561069
-        b = 0.024495759
-    elif axis in y_list:
-        m = 0.892602592
-        b = 0.11899291
-    elif axis in z_list:
-        m = 0.810370347
-        b = 0.003419481
-    else:
-        print('invalid axis name')
-        m = 0
-        b = 0
+    m_list = np.array([1.086561069, 0.892602592, 0.810370347])
+    b_list = np.array([0.024495759, 0.11899291, 0.003419481])
+    current_list = np.array(current_list)
 
-    # print(m, b)
-    return (m * current + b) * 10.
+    B_coil_list = (m_list * current_list + b_list) * 10.
+
+    return B_coil_list
 
 
 def rotate(vec, theta=0.0, phi=0.0, alpha=0.0):
