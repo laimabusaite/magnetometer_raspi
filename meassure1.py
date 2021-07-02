@@ -303,11 +303,11 @@ print("Port is open\t\t",ser.is_open)
 # ----
 
 # Set up the UDP data transfer settings
-host = "192.168.0.101" # "169.254.77.253" # "169.254.191.69"
+host = "192.168.0.102" # "169.254.77.253" # "169.254.191.69"
 port = 4005
 
 #server = ("169.254.191.69", 4000)
-server = ("192.168.0.100", 8080)
+server = ("192.168.0.101", 8080)
 
 s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 s.bind((host, port))
