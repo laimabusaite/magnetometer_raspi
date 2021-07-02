@@ -11,7 +11,8 @@ def round_to_decimal(a, round_to=0):
 
 
 def deltaB_from_deltaFrequencies(A_inv, deltaFrequencies):
-    rotation_angles = {"alpha": 1.9626607183487732, "phi": 20.789077311199208, "theta": 179.4794019370279}
+    # rotation_angles = {"alpha": 1.9626607183487732, "phi": 20.789077311199208, "theta": 179.4794019370279}
+    rotation_angles = {"alpha": 87.34271435510534, "phi": 3.2800280875516754, "theta": 179.51519807708098}
     alpha = rotation_angles['alpha']  # rotate around x
     phi = rotation_angles['phi']  # rotate around z
     theta = rotation_angles['theta']  # rotate around y
@@ -94,11 +95,17 @@ def amper2gauss_array(current_x, current_y, current_z):
 
     #florian
     # m_list = np.array([1.086561069, 0.892602592, 0.810370347]) * 10.
-    # b_list = np.array([0.024495759, 0.11899291, 0.003419481])
+    # b_list = np.array([0.024495759, 0.11899291, 0.003419481]) * 10.
 
     #reinis
     m_list = np.array([8.4895, 10.177, 7.6793])
     b_list = np.array([0.0, 0.0, 0.0])
+
+    #laima
+    linear_params = {"slope": [0.0007826239771925043, 0.0009039493509247832, 0.0010428497650549662],
+     "intercept": [-0.003527443175143303, -0.008846942705030204, -0.009250214551616835]}
+    m_list = np.array(linear_params['slope']) * 10.
+    b_list = np.array(linear_params['intercept']) * 10.
 
 
     # if np.isscalar(current_x):
@@ -114,28 +121,15 @@ def amper2gauss_array(current_x, current_y, current_z):
 
     return B_x, B_y, B_z
 
-def amper2gauss(current, axis):
-    x_list = [0, 'x', 'X']
-    y_list = [1, 'y', 'Y']
-    z_list = [2, 'z', 'Z']
-    # print(current, axis)
+def amper2gauss(current_list):
 
-    if axis in x_list:
-        m = 1.086561069
-        b = 0.024495759
-    elif axis in y_list:
-        m = 0.892602592
-        b = 0.11899291
-    elif axis in z_list:
-        m = 0.810370347
-        b = 0.003419481
-    else:
-        print('invalid axis name')
-        m = 0
-        b = 0
+    m_list = np.array([1.086561069, 0.892602592, 0.810370347])
+    b_list = np.array([0.024495759, 0.11899291, 0.003419481])
+    current_list = np.array(current_list)
 
-    # print(m, b)
-    return (m * current + b) * 10.
+    B_coil_list = (m_list * current_list + b_list) * 10.
+
+    return B_coil_list
 
 
 def rotate(vec, theta=0.0, phi=0.0, alpha=0.0):

@@ -10,7 +10,7 @@ from Calibrate_without_earth_test import rotate
 from generate_data_rotation import rotate_about_axis
 
 if __name__ == '__main__':
-    filename = 'crystal_axis_calibration/coil_axis_calibration.dat'
+    filename = 'crystal_axis_calibration/coil_axis_calibration_old.dat'
 
     df = pd.read_csv(filename, index_col=0)
 
