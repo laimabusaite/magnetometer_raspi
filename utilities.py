@@ -11,8 +11,8 @@ def round_to_decimal(a, round_to=0):
 
 
 def deltaB_from_deltaFrequencies(A_inv, deltaFrequencies):
-    # rotation_angles = {"alpha": 1.9626607183487732, "phi": 20.789077311199208, "theta": 179.4794019370279}
-    rotation_angles = {"alpha": 87.34271435510534, "phi": 3.2800280875516754, "theta": 179.51519807708098}
+    rotation_angles = {"alpha": 1.9626607183487732, "phi": 20.789077311199208, "theta": 179.4794019370279}
+    # rotation_angles = {"alpha": 87.34271435510534, "phi": 3.2800280875516754, "theta": 179.51519807708098}
     alpha = rotation_angles['alpha']  # rotate around x
     phi = rotation_angles['phi']  # rotate around z
     theta = rotation_angles['theta']  # rotate around y
@@ -98,8 +98,8 @@ def amper2gauss_array(current_x, current_y, current_z):
     # b_list = np.array([0.024495759, 0.11899291, 0.003419481]) * 10.
 
     #reinis
-    m_list = np.array([8.4895, 10.177, 7.6793])
-    b_list = np.array([0.0, 0.0, 0.0])
+    # m_list = np.array([8.4895, 10.177, 7.6793])
+    # b_list = np.array([0.0, 0.0, 0.0])
 
     #laima
     linear_params = {"slope": [0.0007826239771925043, 0.0009039493509247832, 0.0010428497650549662],

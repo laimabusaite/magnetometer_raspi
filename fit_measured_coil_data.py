@@ -71,9 +71,11 @@ if __name__ == '__main__':
             parameters_temp[f'CURR_{axis_name}'] = current_value
             parameters_temp[f'CURR_{other_axes[0]}'] = 0.0
             parameters_temp[f'CURR_{other_axes[1]}'] = 0.0
+            parameters_temp[f'axis'] = axis_name
 
             current_list = np.array([parameters_temp['CURR_X'], parameters_temp['CURR_Y'], parameters_temp['CURR_Z']])
-            B_coil = amper2gauss(current_list)
+            # B_coil = amper2gauss(current_list)
+            B_coil = amper2gauss_array(current_list[0], current_list[1], current_list[2])
 
             print(B_coil)
 
