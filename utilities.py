@@ -13,8 +13,8 @@ def round_to_decimal(a, round_to=0):
 def deltaB_from_deltaFrequencies(A_inv, deltaFrequencies):
     rotation_angles = {"alpha": 1.9626607183487732, "phi": 20.789077311199208, "theta": 179.4794019370279}
     alpha = rotation_angles['alpha']  # rotate around x
-    phi = rotation_angles['phi'] + 180  # rotate around z
-    theta = rotation_angles['theta'] - 180.0  # rotate around y
+    phi = rotation_angles['phi']  # rotate around z
+    theta = rotation_angles['theta']  # rotate around y
 
     deltaB = np.dot(A_inv, deltaFrequencies.T)
 
@@ -90,6 +90,29 @@ def asymetrical_voigt_curve(omega, omega_tr, ampl_tr, g, asym_coef=0, fraction=0
             # pri
     return res
 
+def amper2gauss_array(current_x, current_y, current_z):
+
+    #florian
+    # m_list = np.array([1.086561069, 0.892602592, 0.810370347]) * 10.
+    # b_list = np.array([0.024495759, 0.11899291, 0.003419481])
+
+    #reinis
+    m_list = np.array([8.4895, 10.177, 7.6793])
+    b_list = np.array([0.0, 0.0, 0.0])
+
+
+    # if np.isscalar(current_x):
+    #
+
+    # if isinstance(current_x, list):
+    #     current_x = np.array(current_x)
+
+    B_x = current_x * m_list[0] + b_list[0]
+    B_y = current_y * m_list[1] + b_list[1]
+    B_z = current_z * m_list[2] + b_list[2]
+
+
+    return B_x, B_y, B_z
 
 def amper2gauss(current, axis):
     x_list = [0, 'x', 'X']
