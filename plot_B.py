@@ -5,7 +5,7 @@ import numpy as np
 import time
 import os
 
-filenames = sorted(glob.glob("drift_check/b_avg8.log"))
+filenames = sorted(glob.glob("M_parameters/a_avg8.log"))
 filenames.sort(key=os.path.getmtime)
 #filenames = filenames[-4*10::1]
 
@@ -20,7 +20,7 @@ filenames.sort(key=os.path.getmtime)
 
 for f in filenames:
     print(f, end= " ")
-    x = np.loadtxt(fname = f, delimiter='\t', usecols=(3), unpack = True)
+    x = np.loadtxt(fname = f, delimiter='\t', usecols=(2), unpack = True)
     x = x[0:400:1]
     #y = y[0:10000:1]
     print(len(x))
