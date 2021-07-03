@@ -128,8 +128,8 @@ if __name__ == '__main__':
     linear_parameters = {'slope' : slope_list,
                          'intercept': intercept_list}
 
-    a_file = open(f'coil_calibration/extracted_data/linear_parameters.json', "w")
-    json.dump(linear_parameters, a_file)
-    a_file.close()
+    # a_file = open(f'coil_calibration/extracted_data/linear_parameters.json', "w")
+    # json.dump(linear_parameters, a_file)
+    # a_file.close()
 
     plt.show()
