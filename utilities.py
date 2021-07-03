@@ -102,6 +102,13 @@ def asymetrical_voigt_curve(omega, omega_tr, ampl_tr, g, asym_coef=0, fraction=0
     return res
 
 def amper2gauss_array(current_x, current_y, current_z):
+    '''
+    :param current_x: mA
+    :param current_y: mA
+    :param current_z: mA
+    :return:
+    Bx, By, Bz : gauss
+    '''
 
     #florian
     # m_list = np.array([1.086561069, 0.892602592, 0.810370347]) * 10.
@@ -132,6 +139,14 @@ def amper2gauss_array(current_x, current_y, current_z):
     return B_x, B_y, B_z
 
 def gauss2amper_array(B_x, B_y, B_z):
+    '''
+
+    :param B_x: G
+    :param B_y: G
+    :param B_z: G
+    :return:
+    current_x, current_y, current_z : mA
+    '''
     # laima
     linear_params = {"slope": [0.0007826239771925043, 0.0009039493509247832, 0.0010428497650549662],
                      "intercept": [-0.003527443175143303, -0.008846942705030204, -0.009250214551616835]}
