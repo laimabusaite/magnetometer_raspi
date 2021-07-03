@@ -157,7 +157,7 @@ def normalize_data(x_data, y_data, debug=False):
     max_width = len(x_data) / (max(x_data) - min(x_data)) * 15
     peaks, properties = find_peaks(y_smooth, distance=min_distance,
                                    height=height)  # , width=[min_width,max_width])
-    # peaks, properties = find_peaks(y_smooth, prominence=0.004, width=[5, 25])
+    # peakso, prperties = find_peaks(y_smooth, prominence=0.004, width=[5, 25])
 
     peak_positions = np.array(x_data[peaks])
     peak_amplitudes = np.array(y_smooth[peaks])

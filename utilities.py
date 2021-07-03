@@ -11,15 +11,25 @@ def round_to_decimal(a, round_to=0):
 
 
 def deltaB_from_deltaFrequencies(A_inv, deltaFrequencies):
-    rotation_angles = {"alpha": 1.9626607183487732, "phi": 20.789077311199208, "theta": 179.4794019370279}
-    # rotation_angles = {"alpha": 87.34271435510534, "phi": 3.2800280875516754, "theta": 179.51519807708098}
-    alpha = rotation_angles['alpha']  # rotate around x
-    phi = rotation_angles['phi']  # rotate around z
-    theta = rotation_angles['theta']  # rotate around y
+    # rotation_angles = {"alpha": 1.9626607183487732, "phi": 20.789077311199208, "theta": 179.4794019370279}
+    # # rotation_angles = {"alpha": 87.34271435510534, "phi": 3.2800280875516754, "theta": 179.51519807708098}
+    # alpha = rotation_angles['alpha']  # rotate around x
+    # phi = rotation_angles['phi']  # rotate around z
+    # theta = rotation_angles['theta']  # rotate around y
 
     deltaB = np.dot(A_inv, deltaFrequencies.T)
 
-    rotatedB = rotate(deltaB, alpha=alpha, phi=phi, theta=theta)
+    rot_params = {"axis_rot1_0": -0.7692215564021682, "axis_rot1_1": -0.6389821571579491, "axis_rot1_2": 0.0,
+                  "angle": 3.115792252335359, "phi": 2.1075834855795197}
+    rot_axis1 = np.array([rot_params["axis_rot1_0"], rot_params["axis_rot1_1"], rot_params["axis_rot1_2"]])
+    angle1 = rot_params["angle"]
+    rot_axis2 = np.array([0,0,1])
+    angle2 = rot_params["phi"]
+
+    rotatedB_1 = rotate_about_axis(deltaB, rot_axis1, angle1)
+    rotatedB = rotate_about_axis(rotatedB_1, rot_axis2, angle2)
+
+    # rotatedB = rotate(deltaB, alpha=alpha, phi=phi, theta=theta)
 
     return  rotatedB
 
@@ -147,6 +157,37 @@ def rotate(vec, theta=0.0, phi=0.0, alpha=0.0):
                    [0, 0, 1]])
     rotated_vec = np.dot(Rz, np.dot(Ry, np.dot(Rx, vec)))
     return rotated_vec
+
+def amper2gauss_old(current, axis):
+    x_list = [0, 'x', 'X']
+    y_list = [1, 'y', 'Y']
+    z_list = [2, 'z', 'Z']
+    # print(current, axis)
+
+    if axis in x_list:
+        m = 1.086561069
+        b = 0.024495759
+    elif axis in y_list:
+        m = 0.892602592
+        b = 0.11899291
+    elif axis in z_list:
+        m = 0.810370347
+        b = 0.003419481
+    else:
+        print('invalid axis name')
+        m = 0
+        b = 0
+
+    # print(m, b)
+    return (m * current + b) * 10.
+
+def rotate_about_axis(vector, axis, angle):
+    N_mat = np.array([[0, -axis[2], axis[1]],
+                      [axis[2], 0, -axis[0]],
+                      [-axis[1], axis[0], 0]])
+    rot_mat = np.eye(3) + np.sin(angle) * N_mat + (1.0 - np.cos(angle)) * np.dot(N_mat, N_mat)
+    rotated_vector = np.dot(rot_mat, vector)
+    return rotated_vector
 
 
 if __name__ == '__main__':

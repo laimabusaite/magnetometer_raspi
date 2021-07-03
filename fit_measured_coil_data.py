@@ -14,9 +14,11 @@ if __name__ == '__main__':
 
     axes_list = ['X', 'Y', 'Z']
     foldernames = [f'new_calibration/CURR_{axis}' for axis in axes_list]
+    # foldernames = [f'old_calibration/CURR_{axis}' for axis in axes_list]
     print(foldernames)
 
-    savedir = 'new_calibration'# 'crystal_axis_calibration'
+    # savedir = 'new_calibration'# 'crystal_axis_calibration'
+    savedir = 'crystal_axis_calibration'
     if not os.path.exists(f'{savedir}'):
         os.makedirs(f'{savedir}')
 
