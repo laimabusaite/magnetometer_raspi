@@ -131,8 +131,22 @@ def amper2gauss_array(current_x, current_y, current_z):
 
     return B_x, B_y, B_z
 
-def amper2gauss(current_list):
+def gauss2amper_array(B_x, B_y, B_z):
+    # laima
+    linear_params = {"slope": [0.0007826239771925043, 0.0009039493509247832, 0.0010428497650549662],
+                     "intercept": [-0.003527443175143303, -0.008846942705030204, -0.009250214551616835]}
+    m_list = np.array(linear_params['slope']) * 10.
+    b_list = np.array(linear_params['intercept']) * 10.
 
+    current_x = (B_x - b_list[0]) / m_list[0]
+    current_y = (B_y - b_list[1]) / m_list[1]
+    current_z = (B_z - b_list[2]) / m_list[2]
+
+    return current_x, current_y, current_z
+
+
+def amper2gauss(current_list):
+    '''not used'''
     m_list = np.array([1.086561069, 0.892602592, 0.810370347])
     b_list = np.array([0.024495759, 0.11899291, 0.003419481])
     current_list = np.array(current_list)
