@@ -221,42 +221,42 @@ def fit_full_odmr(x_data, y_data,
 
     # create fitting model
     print('Fitting')
-    print('First iteration: vary B \n init:')
+    # print('First iteration: vary B \n init:')
     init_params0 = init_params
     print(init_params0)
-    nv_for_fit.fit_odmr_lorentz(x_data, y_unitary, init_params0, varyB=True, varyGlor=False, varyD=False,
-                                varyMz=False, save=False)
-
-    if debug:
-        # print('nv_for_fit.fitResultLorentz.fit_report()')
-        # print(nv_for_fit.fitResultLorentz.fit_report())
-        # print('nv_for_fit.fitResultLorentz.best_values')
-        # print(nv_for_fit.fitResultLorentz.best_values)
-        plt.figure()
-        plt.plot(x_data, y_unitary)
-        plt.plot(x_data, nv_for_fit.summodel.eval(nv_for_fit.params, x=x_data), 'r--')
-        plt.plot(x_data, nv_for_fit.fitResultLorentz.best_fit, 'r-')
-        # plt.show()
-
-    # read parameters
-    # filename = save_filename  # "ODMR_fit_parameters.json"
-    # a_file = open(filename, "r")
-    init_params = nv_for_fit.fitResultLorentz.best_values  # json.load(a_file)
-    # parameters = dict(parameters)
-    print('Second iteration: vary all \n init:')
-    print(init_params)
+    # nv_for_fit.fit_odmr_lorentz(x_data, y_unitary, init_params0, varyB=True, varyGlor=False, varyD=False,
+    #                             varyMz=False, save=False)
     #
-    nv_for_fit.fit_odmr_lorentz(x_data, y_unitary, init_params, varyB=True, varyGlor=True, varyD=False,
-                                varyMz=True, save_filename=save_filename, save=save)
-
-    print('Result Lorentz')
-    print(nv_for_fit.fitResultLorentz.best_values)
-    if debug:
-        # print(nv_for_fit.fitResultLorentz.fit_report())
-        # print(nv_for_fit.fitResultLorentz.best_values)
-        plt.plot(x_data, nv_for_fit.summodel.eval(nv_for_fit.params, x=x_data), 'k--')
-        plt.plot(x_data, nv_for_fit.fitResultLorentz.best_fit, 'k-')
-        # plt.show()
+    # if debug:
+    #     # print('nv_for_fit.fitResultLorentz.fit_report()')
+    #     # print(nv_for_fit.fitResultLorentz.fit_report())
+    #     # print('nv_for_fit.fitResultLorentz.best_values')
+    #     # print(nv_for_fit.fitResultLorentz.best_values)
+    #     plt.figure()
+    #     plt.plot(x_data, y_unitary)
+    #     plt.plot(x_data, nv_for_fit.summodel.eval(nv_for_fit.params, x=x_data), 'r--')
+    #     plt.plot(x_data, nv_for_fit.fitResultLorentz.best_fit, 'r-')
+    #     # plt.show()
+    #
+    # # read parameters
+    # # filename = save_filename  # "ODMR_fit_parameters.json"
+    # # a_file = open(filename, "r")
+    # init_params = nv_for_fit.fitResultLorentz.best_values  # json.load(a_file)
+    # # parameters = dict(parameters)
+    # print('Second iteration: vary all \n init:')
+    # print(init_params)
+    # #
+    # nv_for_fit.fit_odmr_lorentz(x_data, y_unitary, init_params, varyB=True, varyGlor=True, varyD=False,
+    #                             varyMz=True, save_filename=save_filename, save=save)
+    #
+    # print('Result Lorentz')
+    # print(nv_for_fit.fitResultLorentz.best_values)
+    # if debug:
+    #     # print(nv_for_fit.fitResultLorentz.fit_report())
+    #     # print(nv_for_fit.fitResultLorentz.best_values)
+    #     plt.plot(x_data, nv_for_fit.summodel.eval(nv_for_fit.params, x=x_data), 'k--')
+    #     plt.plot(x_data, nv_for_fit.fitResultLorentz.best_fit, 'k-')
+    #     # plt.show()
 
     # TODO fit voigt
     nv_for_fit.fit_odmr_voigt(x_data, y_unitary, init_params0, varyB=True, varyGlor=False, varyD=False,
@@ -275,8 +275,10 @@ def fit_full_odmr(x_data, y_data,
     init_params = nv_for_fit.fitResultLorentz.best_values
     print('Second iteration: vary all \n init:')
     print(init_params)
-    nv_for_fit.fit_odmr_voigt(x_data, y_unitary, init_params, varyB=True, varyGlor=True, varyD=False,
-                              varyMz=True, varyFraction=True, save_filename=save_filename, save=save)
+    # nv_for_fit.fit_odmr_voigt(x_data, y_unitary, init_params, varyB=True, varyGlor=True, varyD=False,
+    #                           varyMz=True, varyFraction=True, save_filename=save_filename, save=save)
+    nv_for_fit.fit_odmr_voigt(x_data, y_unitary, init_params, varyB=True, varyGlor=True, varyD=True,
+                              varyMz=False, varyFraction=True, save_filename=save_filename, save=save)
     print('Result voigt')
     print(nv_for_fit.fitResultLorentz.best_values)
 

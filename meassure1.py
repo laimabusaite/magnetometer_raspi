@@ -368,7 +368,7 @@ while True:
         phi = 20
         Blab = CartesianVector(B, theta, phi)
         print(Blab)
-        init_params = {'B_labx': Blab[0], 'B_laby': Blab[1], 'B_labz': Blab[2], 'glor': 4.44, 'D': 2870.00, 'Mz1': 0, 'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
+        init_params = {'B_labx': Blab[0], 'B_laby': Blab[1], 'B_labz': Blab[2], 'glor': 10., 'D': 2870.00, 'Mz1': 1.67, 'Mz2': 1.77, 'Mz3': 1.83, 'Mz4': 2.04}
         save_filename = "ODMR_fit_parameters.json"
         fit_odmr.fit_full_odmr(full_scan_mw, full_scan_odmr, init_params=init_params, save_filename=save_filename, debug=False)
         print("\nCalibration done.\n")
