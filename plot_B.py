@@ -5,7 +5,7 @@ import numpy as np
 import time
 import os
 
-filenames = sorted(glob.glob("new_calibration/testing_angles/a_avg8.log"))
+filenames = sorted(glob.glob("drift_check/b_avg8.log"))
 filenames.sort(key=os.path.getmtime)
 #filenames = filenames[-4*10::1]
 
