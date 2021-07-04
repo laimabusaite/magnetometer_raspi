@@ -3,7 +3,8 @@ import numpy as np
 import pandas as pd
 
 if __name__ == '__main__':
-    filename = 'new_calibration/coil_axis_calibration.dat'
+    # filename = 'new_calibration/coil_axis_calibration.dat'
+    filename = 'crystal_axis_calibration/coil_axis_calibration_old.dat'
 
     df = pd.read_csv(filename, index_col=0)
 
