@@ -401,15 +401,15 @@ while True:
         timestamp = str(datetime.datetime.now())
         timestamp = timestamp.replace(":","-")
         timestamp = timestamp.replace(" ","_")
-        dev0=30 # Microwave scan width
+        dev0= int(input("Input microwave scan DEV: ")) # Microwave scan width
         step=1 # Microwave scan step size in MHz
-        a1 = 8 # int(input("Input number of ODMR scan averages: "))
+        a1 = int(input("Input number of ODMR scan averages: "))
         a2=1
         noise=10 # Maximum acceptable noise level
-        sets = 10 # int(input("Input number of magnetic field meassurements, N = "))
+        sets = int(input("Input number of magnetic field meassurements, N = "))
         # ----
 
-        log_file_name += "_avg{0:d}".format(a1)
+        log_file_name += "_dev{0:d}_avg{1:d}".format(dev0,a1)
         log_file_name1 = log_file_name+"_"+timestamp
 
         B1 = {}
