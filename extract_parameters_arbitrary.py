@@ -11,5 +11,12 @@ if __name__ == '__main__':
 
     dir_name = 'RQnc/arb'
 
-    log_file_list = glob.glob(f'{dir_name}/*.log')
+    folder_list = glob.glob(f'{dir_name}/*/')
+
+    print(folder_list)
+
+    folder = folder_list[0]
+
+    log_file_list = glob.glob(f'{folder}/*.log')
     print(log_file_list)
+

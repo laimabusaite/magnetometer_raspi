@@ -10,7 +10,7 @@ import utilities
 
 if __name__ == '__main__':
 
-    # rot_axis = 'Z'
+    # rot_axis = 'Y'
     rot_axis = '45deg'
     dir_name = 'RQ1nc'
     filename = f'{dir_name}/dataframe_B_{rot_axis}.csv'
@@ -96,11 +96,24 @@ if __name__ == '__main__':
     plt.savefig(f'{dir_name}/{rot_axis}/diffB_vs_B.pdf', bbox_inches='tight')
     plt.savefig(f'{dir_name}/{rot_axis}/diffB_vs_B.png', bbox_inches='tight')
 
+    plt.figure('B mod')
+    plt.plot(dataframe_B['B_measured_mean (mT)'], marker='o', c='C0', label='measured')
+    plt.plot(dataframe_B['B_coil_mean (mT)'], marker='o', c='C1', label='coil')
+    # plt.plot(dataframe_B['B_measured_mean (mT)'], np.abs(dataframe_B['diff_B (mT)']), label=r'$\Delta B$')
+    plt.xlabel('index')
+    plt.ylabel('B mod, mT')
+    plt.legend()
+    plt.savefig(f'{dir_name}/{rot_axis}/Bmod.pdf', bbox_inches='tight')
+    plt.savefig(f'{dir_name}/{rot_axis}/Bmod.png', bbox_inches='tight')
+
     fig = plt.figure()
     ax = Axes3D(fig)
-    ax.plot_trisurf(dataframe_B['Bx_coil_mean (mT)'],
+    try:
+        ax.plot_trisurf(dataframe_B['Bx_coil_mean (mT)'],
                  dataframe_B['By_coil_mean (mT)'],
                  dataframe_B['Bz_coil_mean (mT)'], color='C1', alpha=0.1)
+    except Exception as e:
+        print(e)
 
     ax.scatter3D(dataframe_B['Bx_measured_mean (mT)'],
                  dataframe_B['By_measured_mean (mT)'],
