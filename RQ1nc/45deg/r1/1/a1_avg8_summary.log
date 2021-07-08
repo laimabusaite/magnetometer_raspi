@@ -1,5 +1,5 @@
-Total time 11.9 s    Measurements 1/10 = 10 %    Rate 0.84 Hz
-B = (2.77 ± nan) G	rB = nan %
-Bx = (-1.16 ± nan) G	rBx = nan %
-By = (1.24 ± nan) G	rBy = nan %
-Bz = (2.19 ± nan) G	rBz = nan %
+Total time 16.3 s    Measurements 10/10 = 100 %    Rate 0.61 Hz
+B = (3.73 ± 0.01) G	rB = 0.31 %
+Bx = (2.67 ± 0.01) G	rBx = 0.25 %
+By = (-0.04 ± 0.01) G	rBy = 38.37 %
+Bz = (2.61 ± 0.02) G	rBz = 0.59 %

@@ -122,7 +122,7 @@ if __name__ == '__main__':
         plt.legend()
 
         print(dataframe_axis)
-        dataframe_axis.to_csv(f'coil_calibration/extracted_data/{dir_axis}_coil.dat', index=False)
+        # dataframe_axis.to_csv(f'coil_calibration/extracted_data/{dir_axis}_coil.dat', index=False)
 
 
     linear_parameters = {'slope' : slope_list,
