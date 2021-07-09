@@ -37,8 +37,8 @@ def make_error_boxes(ax, xdata, ydata, xerror, yerror, facecolor='r',
 
 if __name__ == '__main__':
 
-    # rot_axis = 'Z'
-    rot_axis = '45deg'
+    rot_axis = 'Y'
+    # rot_axis = '45deg'
     dir_name = 'RQ1nc'
     filename = f'{dir_name}/dataframe_B_{rot_axis}.csv'
     print(filename)
