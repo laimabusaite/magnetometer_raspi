@@ -240,10 +240,17 @@ if __name__ == '__main__':
                                                   dataframe_B['B_measured_std_r3 (mT)'] ** 2 +
                                                   dataframe_B['B_measured_std_r4 (mT)'] ** 2)
 
-    dataframe_B['Bx_measured_std_0 (mT)'] = 0.006928  # 0.084567
-    dataframe_B['By_measured_std_0 (mT)'] = 0.007752  # 0.094622
-    dataframe_B['Bz_measured_std_0 (mT)'] = 0.010947  # 0.133624
-    dataframe_B['B_measured_std_0 (mT)'] = 0.008400  # 0.102536
+    # std
+    # dataframe_B['Bx_measured_std_0 (mT)'] = 0.006928  # 0.084567
+    # dataframe_B['By_measured_std_0 (mT)'] = 0.007752  # 0.094622
+    # dataframe_B['Bz_measured_std_0 (mT)'] = 0.010947  # 0.133624
+    # dataframe_B['B_measured_std_0 (mT)'] = 0.008400  # 0.102536
+
+    # mean
+    dataframe_B['Bx_measured_std_0 (mT)'] = 0.032879
+    dataframe_B['By_measured_std_0 (mT)'] = 0.062017
+    dataframe_B['Bz_measured_std_0 (mT)'] = 0.154423
+    dataframe_B['B_measured_std_0 (mT)'] = 0.169628
 
     dataframe_B['diff_Bx (mT)'] = dataframe_B['Bx_coil_mean (mT)'] - dataframe_B['Bx_measured_mean (mT)']
     dataframe_B['diff_By (mT)'] = dataframe_B['By_coil_mean (mT)'] - dataframe_B['By_measured_mean (mT)']

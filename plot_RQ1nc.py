@@ -37,8 +37,8 @@ def make_error_boxes(ax, xdata, ydata, xerror, yerror, facecolor='r',
 
 if __name__ == '__main__':
 
-    rot_axis = 'Y'
-    # rot_axis = '45deg'
+    # rot_axis = 'Z'
+    rot_axis = '45deg'
     dir_name = 'RQ1nc'
     filename = f'{dir_name}/dataframe_B_{rot_axis}.csv'
     print(filename)
@@ -199,7 +199,7 @@ if __name__ == '__main__':
 
 
     print(dataframe_B['B_measured_mean (mT)'] - dataframe_B['B_measured_std_mean (mT)'])
-    err_mod = np.sqrt(dataframe_B['B_measured_std_mean (mT)']**2 + dataframe_B['B_measured_std_0 (mT)'])
+    err_mod = np.sqrt(dataframe_B['B_measured_std_mean (mT)']**2 + dataframe_B['B_measured_std_0 (mT)']**2)
     plt.figure('B mod')
     l1, = plt.plot(dataframe_B.index + 1, dataframe_B['B_measured_mean (mT)'], marker='o', c='C0', label='measured')
     fill1 = plt.fill_between(dataframe_B.index + 1,

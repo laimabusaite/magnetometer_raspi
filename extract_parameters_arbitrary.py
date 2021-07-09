@@ -145,17 +145,23 @@ if __name__ == '__main__':
     print(dataframe)
 
 
-    # dataframe_B = pd.concat(dataframe_list, ignore_index=True)
-    # print(dataframe_B)
-    #
-    # B_mean = dataframe_B.mean()
-    # # B_mean['Bmod'] = np.sqrt(B_mean['Bx']**2+B_mean['By']**2+B_mean['Bz']**2)
-    # print(B_mean)
-    # B_std = dataframe_B.std() / np.sqrt(len(dataframe_B) - 1)
-    # print(B_std)
-    #
-    # print(B_mean - B_std)
-    #
-    # print(B_mean + B_std)
+    dataframe_B = pd.concat(dataframe_list, ignore_index=True)
+    print(dataframe_B)
+
+    B_mean = dataframe_B.mean()
+    # B_mean['Bmod'] = np.sqrt(B_mean['Bx']**2+B_mean['By']**2+B_mean['Bz']**2)
+    print('B_mean')
+    print(B_mean)
+    B_std = dataframe_B.std() / np.sqrt(len(dataframe_B) - 1)
+    print('B_std')
+    print(B_std)
+    print('B_mean - B_std')
+    print(B_mean - B_std)
+    print('B_mean + B_std')
+    print(B_mean + B_std)
+
+    B_mean['Bmod'] = np.sqrt(B_mean['Bx']**2+B_mean['By']**2+B_mean['Bz']**2)
+    print('B_mean')
+    print(B_mean)
 
 
