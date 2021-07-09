@@ -307,7 +307,7 @@ host = "192.168.0.102" # "169.254.77.253" # "169.254.191.69"
 port = 4005
 
 #server = ("169.254.191.69", 4000)
-server = ("192.168.0.100", 8080)
+server = ("192.168.0.101", 8080)
 
 s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 s.bind((host, port))
@@ -355,13 +355,14 @@ while True:
         #microwave_generator_warmup()
         foldername1 = str(input("Input directory name: "))
         log_file_name = str(input("Input log file name for this measurement: "))
+        step= float(input("Input microwave scan step: ")) # Microwave scan step size in MHz
         #timestamp = str(datetime.datetime.now())
         #timestamp = timestamp.replace(":","-")
         #timestamp = timestamp.replace(" ","_")
         #log_file_name1 = log_file_name+"_"+timestamp
         print("Running full ODMR peak scan.\n")
         level = get_baseline(2900,10)
-        full_scan_mw, full_scan_odmr = scan_peak(2905,600,1,64,1,level,10,1,log_file_name,foldername1)
+        full_scan_mw, full_scan_odmr = scan_peak(2905,600,step,64,1,level,10,1,log_file_name,foldername1)
         #write_file(full_scan_mw, full_scan_odmr, "full_scan")
         B = 200
         theta = 80
@@ -402,7 +403,7 @@ while True:
         timestamp = timestamp.replace(":","-")
         timestamp = timestamp.replace(" ","_")
         dev0= int(input("Input microwave scan DEV: ")) # Microwave scan width
-        step=1 # Microwave scan step size in MHz
+        step= float(input("Input microwave scan step: ")) # Microwave scan step size in MHz
         a1 = int(input("Input number of ODMR scan averages: "))
         a2=1
         noise=10 # Maximum acceptable noise level
