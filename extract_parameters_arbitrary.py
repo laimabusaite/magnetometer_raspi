@@ -22,7 +22,7 @@ if __name__ == '__main__':
     excel_coil = pd.ExcelFile(filename_coil)
     column_names = ['set Ix, mA', 'set Iy, mA', 'set Iz, mA']
     dataframe_coil = pd.read_excel(excel_coil, header=0)
-    dataframe_coil['Bx_coil'], dataframe_coil['By_coil'], dataframe_coil['Bz_coil'] = utilities.amper2gauss_array(
+    dataframe_coil['Bx_coil'], dataframe_coil['By_coil'], dataframe_coil['Bz_coil'] =utilities.amper2gauss_array(
         dataframe_coil[column_names[0]], dataframe_coil[column_names[1]], dataframe_coil[column_names[2]])
     dataframe_coil['Ix err'] = 0.5
     dataframe_coil['Iy err'] = 0.5
@@ -30,11 +30,12 @@ if __name__ == '__main__':
     dataframe_coil['Bx_coil_std'], dataframe_coil['By_coil_std'], dataframe_coil[
         'Bz_coil_std'] = utilities.amper2gauss_array(
         dataframe_coil['Ix err'], dataframe_coil['Iy err'], dataframe_coil['Iz err'])
+    # dataframe_coil *= 0.1
     print(dataframe_coil)
 
 
-
-    folder = folder_list[0]
+    idx_folder = 0
+    folder = folder_list[idx_folder]
 
     log_file_list = sorted(glob.glob(f'{folder}/*.log'))
     # log_file_list.sort(key=os.path.getmtime)
@@ -63,6 +64,8 @@ if __name__ == '__main__':
 
     avg_list = []
     dev_list = []
+    time_list = []
+    rate_list = []
 
     dataframe_list = []
     for idx, log_file in enumerate(log_file_a_list):
@@ -80,17 +83,76 @@ if __name__ == '__main__':
         same = log_file[:-4] in log_summary
         print(same)
 
-        B_dataframe = pd.read_csv(log_file, names=['Bx', 'By', 'Bz', 'B'], delimiter='\t')
-        dataframe_list.append(B_dataframe)
+        B_dataframe_temp = pd.read_csv(log_file, names=['Bx', 'By', 'Bz', 'B'], delimiter='\t')
+        dataframe_list.append(B_dataframe_temp)
+        B_mean = B_dataframe_temp.mean()
+        B_std = B_dataframe_temp.std() / np.sqrt(len(B_dataframe_temp) - 1)
+        B_list.append(0.1*B_mean['B'])
+        Bx_list.append(0.1*B_mean['Bx'])
+        By_list.append(0.1*B_mean['By'])
+        Bz_list.append(0.1*B_mean['Bz'])
+        B_std_list.append(0.1*B_std['B'])
+        Bx_std_list.append(0.1*B_std['Bx'])
+        By_std_list.append(0.1*B_std['By'])
+        Bz_std_list.append(0.1*B_std['Bz'])
 
-    dataframe_B = pd.concat(dataframe_list, ignore_index=True)
-    print(dataframe_B)
+        #extract from summary
+        a_file = open(log_summary, 'r')
+        summary = a_file.readlines()
+        summary_split = re.split(' ', summary[0])
+        print(summary)
+        print(summary_split)
+        total_time = float(summary_split[2])
+        rate = float(summary_split[16])
+        a_file.close()
+        print(f'Total time: {total_time} s, Rate: {rate} Hz')
+        time_list.append(total_time)
+        rate_list.append(rate)
 
-    B_mean = dataframe_B.mean()
-    # B_mean['Bmod'] = np.sqrt(B_mean['Bx']**2+B_mean['By']**2+B_mean['Bz']**2)
-    print(B_mean)
-    B_std = dataframe_B.std() / np.sqrt(len(dataframe_B) - 1)
-    print(B_std)
+
+    data = {
+        # 'Bx_coil': dataframe_coil['Bx_coil'].values,
+        # 'By_coil': dataframe_coil['By_coil'].values,
+        # 'Bz_coil': dataframe_coil['Bz_coil'].values,
+        # 'B_coil': B_coil_list,
+        # 'Bx_coil_std': Bx_coil_list,
+        # 'By_coil_std': By_coil_list,
+        # 'Bz_coil_std': Bz_coil_list,
+        # 'B_coil_std': B_coil_list,
+        'Bx_measured (mT)': Bx_list,
+        'By_measured (mT)': By_list,
+        'Bz_measured (mT)': Bz_list,
+        'B_measured (mT)': B_list,
+        'Bx_measured_std (mT)': Bx_std_list,
+        'By_measured_std (mT)': By_std_list,
+        'Bz_measured_std (mT)': Bz_std_list,
+        'B_measured_std (mT)': B_std_list,
+        'avg': avg_list,
+        'dev (MHz)': dev_list,
+        'total time (s)': time_list,
+        'rate (Hz)': rate_list
+    }
+
+    dataframe = pd.DataFrame(data)
+    dataframe['Bx_coil (mT)'] = dataframe_coil.loc[0, 'Bx_coil'] * 0.1
+    dataframe['By_coil (mT)'] = dataframe_coil.loc[0, 'By_coil'] * 0.1
+    dataframe['Bz_coil (mT)'] = dataframe_coil.loc[0, 'Bz_coil'] * 0.1
+    # dataframe['B_coil'] = dataframe_coil.loc[0, 'B_coil']
+    dataframe['Bx_coil_std (mT)'] = dataframe_coil.loc[0, 'Bx_coil_std'] * 0.1
+    dataframe['By_coil_std (mT)'] = dataframe_coil.loc[0, 'By_coil_std'] * 0.1
+    dataframe['Bz_coil_std (mT)'] = dataframe_coil.loc[0, 'Bz_coil_std'] * 0.1
+    # dataframe['B_coil_std'] = dataframe_coil.loc[0, 'B_coil_std']
+    print(dataframe)
+
+
+    # dataframe_B = pd.concat(dataframe_list, ignore_index=True)
+    # print(dataframe_B)
+    #
+    # B_mean = dataframe_B.mean()
+    # # B_mean['Bmod'] = np.sqrt(B_mean['Bx']**2+B_mean['By']**2+B_mean['Bz']**2)
+    # print(B_mean)
+    # B_std = dataframe_B.std() / np.sqrt(len(dataframe_B) - 1)
+    # print(B_std)
     #
     # print(B_mean - B_std)
     #
