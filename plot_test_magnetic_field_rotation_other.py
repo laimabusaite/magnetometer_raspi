@@ -11,8 +11,12 @@ if __name__ == '__main__':
 
     r_list = [1, 2, 3, 4]
     dir_name = 'RQ1nc'
-    axis = '45deg'
-    num_angles = 9
+    # axis = '45deg'
+    axis = 'Y'
+    if axis == '45deg':
+        num_angles = 9
+    else:
+        num_angles = 18
 
     # filename_coil = f'{dir_name}/{axis}/current_rotation_{axis}.xls'
     filename_coil = glob.glob(f'{dir_name}/{axis}/*.xls')[0]
@@ -31,10 +35,17 @@ if __name__ == '__main__':
         print(dataframe_coil.columns)
         dataframe_coil['Bx_coil'], dataframe_coil['By_coil'], dataframe_coil['Bz_coil'] = utilities.amper2gauss_array(
             dataframe_coil[column_names[0]], dataframe_coil[column_names[1]], dataframe_coil[column_names[2]])
+        dataframe_coil['Ix err'] = 0.5
+        dataframe_coil['Iy err'] = 0.5
+        dataframe_coil['Iz err'] = 0.1
+        dataframe_coil['Bx_coil_std'], dataframe_coil['By_coil_std'], dataframe_coil[
+            'Bz_coil_std'] = utilities.amper2gauss_array(
+            dataframe_coil['Ix err'], dataframe_coil['Iy err'], dataframe_coil['Iz err'])
         print(dataframe_coil)
 
         # measured data
-        foldernames = [f'{dir_name}/{axis}/r{r}/{i}/' for i in range(1, num_angles+1)]  # glob.glob(f'RQ1nc/Z/r{r}/*/')
+        foldernames = [f'{dir_name}/{axis}/r{r}/{i}/' for i in
+                       range(1, num_angles + 1)]  # glob.glob(f'RQ1nc/Z/r{r}/*/')
         print(foldernames)
         axis_list = []
         current_x_list = []
@@ -132,7 +143,7 @@ if __name__ == '__main__':
             'B_measured_std': B_std_list
         }
 
-        dataframe = pd.DataFrame(data) #, index=folder_index_list)
+        dataframe = pd.DataFrame(data)  # , index=folder_index_list)
         print(dataframe)
 
         # rotate around z axis
@@ -172,7 +183,17 @@ if __name__ == '__main__':
         dataframe_B[f'By_coil_r{r} (mT)'] = dataframe_coil['By_coil'].values
         dataframe_B[f'Bz_coil_r{r} (mT)'] = dataframe_coil['Bz_coil'].values
         dataframe_B[f'B_coil_r{r} (mT)'] = np.sqrt(
-            dataframe_coil['Bx_coil'].values ** 2 + dataframe_coil['By_coil'].values ** 2 + dataframe_coil['Bz_coil'].values ** 2)
+            dataframe_coil['Bx_coil'].values ** 2 +
+            dataframe_coil['By_coil'].values ** 2 +
+            dataframe_coil['Bz_coil'].values ** 2)
+
+        dataframe_B[f'Bx_coil_std_r{r} (mT)'] = dataframe_coil['Bx_coil_std'].values
+        dataframe_B[f'By_coil_std_r{r} (mT)'] = dataframe_coil['By_coil_std'].values
+        dataframe_B[f'Bz_coil_std_r{r} (mT)'] = dataframe_coil['Bz_coil_std'].values
+        dataframe_B[f'B_coil_std_r{r} (mT)'] = np.sqrt(
+            dataframe_coil['Bx_coil_std'].values ** 2 +
+            dataframe_coil['By_coil_std'].values ** 2 +
+            dataframe_coil['Bz_coil_std'].values ** 2)
 
         dataframe_B[f'Bx_measured_r{r} (mT)'] = dataframe['Bx_measured'].values
         dataframe_B[f'By_measured_r{r} (mT)'] = dataframe['By_measured'].values
@@ -189,11 +210,30 @@ if __name__ == '__main__':
     dataframe_B['Bz_coil_mean (mT)'] = np.mean(dataframe_B[[f'Bz_coil_r{r} (mT)' for r in r_list]].values, axis=1)
     dataframe_B['B_coil_mean (mT)'] = np.mean(dataframe_B[[f'B_coil_r{r} (mT)' for r in r_list]].values, axis=1)
 
-    dataframe_B['Bx_measured_mean (mT)'] = np.mean(dataframe_B[[f'Bx_measured_r{r} (mT)' for r in r_list]].values, axis=1)
-    dataframe_B['By_measured_mean (mT)'] = np.mean(dataframe_B[[f'By_measured_r{r} (mT)' for r in r_list]].values, axis=1)
-    dataframe_B['Bz_measured_mean (mT)'] = np.mean(dataframe_B[[f'Bz_measured_r{r} (mT)' for r in r_list]].values, axis=1)
-    dataframe_B['B_measured_mean (mT)'] = np.mean(dataframe_B[[f'B_measured_r{r} (mT)' for r in r_list]].values, axis=1)
+    dataframe_B['Bx_coil_std_mean (mT)'] = np.sqrt(dataframe_B['Bx_coil_std_r1 (mT)'] ** 2 +
+                                                   dataframe_B['Bx_coil_std_r2 (mT)'] ** 2 +
+                                                   dataframe_B['Bx_coil_std_r3 (mT)'] ** 2 +
+                                                   dataframe_B['Bx_coil_std_r4 (mT)'] ** 2)
+    dataframe_B['By_coil_std_mean (mT)'] = np.sqrt(dataframe_B['By_coil_std_r1 (mT)'] ** 2 +
+                                                   dataframe_B['By_coil_std_r2 (mT)'] ** 2 +
+                                                   dataframe_B['By_coil_std_r3 (mT)'] ** 2 +
+                                                   dataframe_B['By_coil_std_r4 (mT)'] ** 2)
+    dataframe_B['Bz_coil_std_mean (mT)'] = np.sqrt(dataframe_B['Bz_coil_std_r1 (mT)'] ** 2 +
+                                                   dataframe_B['Bz_coil_std_r2 (mT)'] ** 2 +
+                                                   dataframe_B['Bz_coil_std_r3 (mT)'] ** 2 +
+                                                   dataframe_B['Bz_coil_std_r4 (mT)'] ** 2)
+    dataframe_B['B_coil_std_mean (mT)'] = np.sqrt(dataframe_B['B_coil_std_r1 (mT)'] ** 2 +
+                                                  dataframe_B['B_coil_std_r2 (mT)'] ** 2 +
+                                                  dataframe_B['B_coil_std_r3 (mT)'] ** 2 +
+                                                  dataframe_B['B_coil_std_r4 (mT)'] ** 2)
 
+    dataframe_B['Bx_measured_mean (mT)'] = np.mean(dataframe_B[[f'Bx_measured_r{r} (mT)' for r in r_list]].values,
+                                                   axis=1)
+    dataframe_B['By_measured_mean (mT)'] = np.mean(dataframe_B[[f'By_measured_r{r} (mT)' for r in r_list]].values,
+                                                   axis=1)
+    dataframe_B['Bz_measured_mean (mT)'] = np.mean(dataframe_B[[f'Bz_measured_r{r} (mT)' for r in r_list]].values,
+                                                   axis=1)
+    dataframe_B['B_measured_mean (mT)'] = np.mean(dataframe_B[[f'B_measured_r{r} (mT)' for r in r_list]].values, axis=1)
 
     dataframe_B['Bx_measured_std_mean (mT)'] = np.sqrt(dataframe_B['Bx_measured_std_r1 (mT)'] ** 2 +
                                                        dataframe_B['Bx_measured_std_r2 (mT)'] ** 2 +
@@ -211,6 +251,13 @@ if __name__ == '__main__':
                                                       dataframe_B['B_measured_std_r2 (mT)'] ** 2 +
                                                       dataframe_B['B_measured_std_r3 (mT)'] ** 2 +
                                                       dataframe_B['B_measured_std_r4 (mT)'] ** 2)
+
+    dataframe_B['Bx_measured_std_0 (mT)'] = 0.000568 #0.084567
+    dataframe_B['By_measured_std_0 (mT)'] = 0.000635 #0.094622
+    dataframe_B['Bz_measured_std_0 (mT)'] = 0.000897 #0.133624
+    dataframe_B['B_measured_std_0 (mT)'] = 0.000688 #0.102536
+
+
 
     dataframe_B['diff_Bx (mT)'] = dataframe_B['Bx_coil_mean (mT)'] - dataframe_B['Bx_measured_mean (mT)']
     dataframe_B['diff_By (mT)'] = dataframe_B['By_coil_mean (mT)'] - dataframe_B['By_measured_mean (mT)']
