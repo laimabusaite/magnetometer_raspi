@@ -14,8 +14,8 @@ from utilities import *
 if __name__ == '__main__':
 
     dB = 0.001
-    foldername = 'RQnc/arb/5G'
-    num = 1
+    foldername = 'RQnc/arb/0G'
+    num = 12
     if num == 13:
         num_str = f'{num}_real'
     else:
