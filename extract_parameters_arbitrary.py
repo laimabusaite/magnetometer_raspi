@@ -11,7 +11,7 @@ import utilities
 
 if __name__ == '__main__':
 
-    dir_name = 'RQnc/arb'
+    dir_name = 'RQnc/arb1'
     folder_list = sorted(glob.glob(f'{dir_name}/*/'))
     # folder_list.sort(key=os.path.getmtime)
     print(folder_list)
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     print(dataframe_coil)
 
 
-    idx_folder = 0
+    idx_folder = 3
     folder = folder_list[idx_folder]
 
     log_file_list = sorted(glob.glob(f'{folder}/*.log'))
@@ -70,12 +70,17 @@ if __name__ == '__main__':
     dataframe_list = []
     for idx, log_file in enumerate(log_file_a_list):
         # print(log_file, time.ctime(os.path.getctime(log_file)))
-        log_file_split = re.split('G/a|/|_dev|_avg|.log',log_file)
+        dev_idx = log_file.find('_dev')
+        avg_idx = log_file.find('_avg')
+        dot_idx = log_file.find('.log')
+        print('avg find', dev_idx, avg_idx, dot_idx)
+        print(log_file[dev_idx+4:avg_idx], log_file[avg_idx+4:dot_idx])
+        log_file_split = re.split('G/a|/|_dev|_avg|.log|G', log_file)
         print(log_file_split)
         B_gauss = float(log_file_split[2])
         a = log_file_split[3]
-        dev = float(log_file_split[4])
-        avg = float(log_file_split[5])
+        dev = float(log_file[dev_idx+4:avg_idx]) #float(log_file_split[4])
+        avg = float(log_file[avg_idx+4:dot_idx]) #float(log_file_split[5])
         avg_list.append(avg)
         dev_list.append(dev)
 
@@ -87,6 +92,7 @@ if __name__ == '__main__':
         dataframe_list.append(B_dataframe_temp)
         B_mean = B_dataframe_temp.mean()
         B_std = B_dataframe_temp.std() / np.sqrt(len(B_dataframe_temp) - 1)
+
         B_list.append(0.1*B_mean['B'])
         Bx_list.append(0.1*B_mean['Bx'])
         By_list.append(0.1*B_mean['By'])
@@ -142,26 +148,50 @@ if __name__ == '__main__':
     dataframe['By_coil_std (mT)'] = dataframe_coil.loc[0, 'By_coil_std'] * 0.1
     dataframe['Bz_coil_std (mT)'] = dataframe_coil.loc[0, 'Bz_coil_std'] * 0.1
     # dataframe['B_coil_std'] = dataframe_coil.loc[0, 'B_coil_std']
-    print(dataframe)
+    # print(dataframe)
 
-
-    dataframe_B = pd.concat(dataframe_list, ignore_index=True)
-    print(dataframe_B)
-
-    B_mean = dataframe_B.mean()
+    #
+    # dataframe_B = pd.concat(dataframe_list, ignore_index=True)
+    # print(dataframe_B)
+    #
+    # B_mean = dataframe_B.mean()
+    # # B_mean['Bmod'] = np.sqrt(B_mean['Bx']**2+B_mean['By']**2+B_mean['Bz']**2)
+    # print('B_mean')
+    # print(B_mean)
+    # B_std = dataframe_B.std() / np.sqrt(len(dataframe_B) - 1)
+    # print('B_std')
+    # print(B_std)
+    # print('B_mean - B_std')
+    # print(B_mean - B_std)
+    # print('B_mean + B_std')
+    # print(B_mean + B_std)
+    #
     # B_mean['Bmod'] = np.sqrt(B_mean['Bx']**2+B_mean['By']**2+B_mean['Bz']**2)
-    print('B_mean')
-    print(B_mean)
-    B_std = dataframe_B.std() / np.sqrt(len(dataframe_B) - 1)
-    print('B_std')
-    print(B_std)
-    print('B_mean - B_std')
-    print(B_mean - B_std)
-    print('B_mean + B_std')
-    print(B_mean + B_std)
+    # print('B_mean')
+    # print(B_mean)
 
-    B_mean['Bmod'] = np.sqrt(B_mean['Bx']**2+B_mean['By']**2+B_mean['Bz']**2)
-    print('B_mean')
-    print(B_mean)
+
+    dataframe_dev20 = dataframe[dataframe['dev (MHz)']==20]
+    # print(dataframe_dev20)
+
+    dev_set = set(dataframe['dev (MHz)'])
+
+    print(dev_set)
+
+    for dev in dev_set:
+        dataframe_dev = dataframe[dataframe['dev (MHz)'] == dev]
+        print(dataframe_dev[['avg', 'rate (Hz)', 'dev (MHz)']])
+        plt.scatter(dataframe_dev['avg'], dataframe_dev['rate (Hz)'], label=f'dev = {dev} MHz')
+
+        plt.xlabel('Averages')
+        plt.ylabel('Rate (Hz)')
+
+    print(dataframe[['avg', 'rate (Hz)', 'dev (MHz)']])
+    #
+    # dataframe_rate = pd.DataFrame([])
+    # dataframe_rate
+
+    plt.legend()
+    plt.show()
 
 
