@@ -141,6 +141,8 @@ if __name__ == '__main__':
 
     # dataframe_rate = dataframe_rate.reindex(sorted(dataframe_rate.columns), axis=1)
     # dataframe_rate = dataframe_rate.sort_index(axis=1)
+    # dataframe_rate = dataframe_rate.swaplevel(axis=1)
+    # dataframe_rate = dataframe_rate.sort_index(axis=1)
     print(dataframe_rate)
     # print(dataframe_rate.T)
 
@@ -161,6 +163,6 @@ if __name__ == '__main__':
 
 
     dataframe_rate.to_csv('tables/table_rate.csv')
-    dataframe_accuracy.to_csv('tables/table_accuracy.csv')
+    # dataframe_accuracy.to_csv('tables/table_accuracy.csv')
 
     # print(dataframe_rate.T)
