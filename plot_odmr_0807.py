@@ -14,14 +14,14 @@ from utilities import *
 if __name__ == '__main__':
 
     dB = 0.001
-    foldername = 'RQnc/arb1/5G'
-    num = 12
+    foldername = 'RQnc/arb1/0G'
+    num = 9
     if num == 13:
         num_str = f'{num}_real'
     else:
         num_str = f'{num}'
 
-    filename_list = sorted(glob.glob(f'{foldername}/a{num_str}*.dat'))
+    filename_list = sorted(glob.glob(f'{foldername}/a{num_str}_*.dat'))
     # filename_list = ['RQnc/arb/2G/a12_dev30_avg16_dev30.0_peak2616.8_2021-07-07_02-38-57.360786.dat',
     #                  'RQnc/arb/2G/a12_dev30_avg16_dev30.0_peak2891.7_2021-07-07_02-39-01.311106.dat',
     #                  'RQnc/arb/2G/a12_dev30_avg16_dev30.0_peak3223.8_2021-07-07_02-39-02.089214.dat',
@@ -76,6 +76,7 @@ if __name__ == '__main__':
 
     print(filename_array.shape)
     for idx in range(filename_array.shape[1]):
+    # for idx in range(1):
         # print(idx)
         filename_list = filename_array[:, idx]
         peak_list = []
