@@ -14,7 +14,7 @@ from utilities import *
 if __name__ == '__main__':
 
     dB = 0.001
-    foldername = 'RQnc/arb/0G'
+    foldername = 'RQnc/arb1/5G'
     num = 12
     if num == 13:
         num_str = f'{num}_real'
@@ -74,46 +74,52 @@ if __name__ == '__main__':
 
     plt.plot(dataframe_full['MW'], dataframe_full['ODMR'], c='k')
 
-    peak_list = []
-    peak_full_list = []
-    for filename in filename_list:
-        filename_split = re.split('peak|_', filename)
-        print(filename_split)
-        # print(filename_split[6])
-        if 'real' in filename_split:
-            fr_centr = float(filename_split[6])
-        else:
-            fr_centr = float(filename_split[5])
-        fr_dev = 15
-        x_full = \
-        dataframe_full[(dataframe_full['MW'] >= fr_centr - fr_dev) & (dataframe_full['MW'] <= fr_centr + fr_dev)]['MW']
-        y_full = \
-        dataframe_full[(dataframe_full['MW'] >= fr_centr - fr_dev) & (dataframe_full['MW'] <= fr_centr + fr_dev)][
-            'ODMR']
+    print(filename_array.shape)
+    for idx in range(filename_array.shape[1]):
+        # print(idx)
+        filename_list = filename_array[:, idx]
+        peak_list = []
+        peak_full_list = []
+        for idx2, filename in enumerate(filename_list):
+            print(idx, idx2)
+            # print(filename, type(filename))
+            filename_split = re.split('peak|_', filename)
+            # print(filename_split)
+            # print(filename_split[6])
+            if 'real' in filename_split:
+                fr_centr = float(filename_split[6])
+            else:
+                fr_centr = float(filename_split[5])
+            fr_dev = 15
+            x_full = \
+            dataframe_full[(dataframe_full['MW'] >= fr_centr - fr_dev) & (dataframe_full['MW'] <= fr_centr + fr_dev)]['MW']
+            y_full = \
+            dataframe_full[(dataframe_full['MW'] >= fr_centr - fr_dev) & (dataframe_full['MW'] <= fr_centr + fr_dev)][
+                'ODMR']
 
-        peak_full = detect_peaks(x_full, y_full, debug=True)
-        peak_full_list.append(peak_full)
+            peak_full = detect_peaks(x_full, y_full, debug=True)
+            peak_full_list.append(peak_full)
 
-        dataframe = pd.read_csv(filename, names=['MW', 'ODMR'], sep='\t')
-        print(dataframe.head())
+            dataframe = pd.read_csv(filename, names=['MW', 'ODMR'], sep='\t')
+            print(dataframe.head())
 
-        peak = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=True)
-        peak_list.append(peak)
+            peak = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=True)
+            peak_list.append(peak)
 
-        plt.plot(dataframe['MW'], dataframe['ODMR'])
+            plt.plot(dataframe['MW'], dataframe['ODMR'])
 
-    peaks_list = np.array(peak_list).flatten()
-    print(peaks_list)
-    peaks_full_list = np.array(peak_full_list).flatten()
-    print(peaks_full_list)
+        peaks_list = np.array(peak_list).flatten()
+        print(peaks_list)
+        peaks_full_list = np.array(peak_full_list).flatten()
+        print(peaks_full_list)
 
-    # delta_frequencies = frequencies0 - peaks_list
-    delta_frequencies = peaks_full_list - peaks_list
-    print('delta frequencies:', delta_frequencies)
-    # delta_frequencies = np.zeros(4) + 0.3
+        # delta_frequencies = frequencies0 - peaks_list
+        delta_frequencies = peaks_full_list - peaks_list
+        print('delta frequencies:', delta_frequencies)
+        # delta_frequencies = np.zeros(4) + 0.3
 
-    Bsens = deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
+        Bsens = deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
 
-    print("\nB =", Bsens, np.linalg.norm(Bsens))
+        print("\nB =", Bsens, np.linalg.norm(Bsens))
 
     plt.show()

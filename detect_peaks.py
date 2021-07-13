@@ -60,13 +60,14 @@ def detect_peaks(x_data, y_data, debug=False):
     y_data = np.array(y_data)
     #x, x0, amplitude, gamma, y0
     time0 = time.time()
-    x0_init = np.mean(x_data)
+
+    x0_init = detect_peaks_weighted(x_data, y_data) #np.mean(x_data)
     y0_init = max(y_data)
     amplitude_init = min(y_data) - max(y_data)
     gamma_init = 5
     try:
         popt, pconv = curve_fit(lorentz, x_data, y_data, p0=[x0_init, amplitude_init, gamma_init, y0_init],
-                                bounds=((-np.inf,-np.inf,4,0.5), (np.inf,-0.001,20,2)))
+                                bounds=((x_data[0],-1,4.0,0.8), (x_data[-1],-0.001,20.0,1.6)))
         time1 = time.time()
 
         peak_positions = popt[0]
