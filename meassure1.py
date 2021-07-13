@@ -429,10 +429,17 @@ while True:
             print("\n {0:d}. ".format(i+1), end = "", flush = True)
             level = get_baseline(2900,10)
 
-            peak2_MW, peak2_ODMR = scan_peak(f2,dev0,step,a1,a2,level,noise,1,log_file_name,foldername1)
-            peak4_MW, peak4_ODMR = scan_peak(f4,dev0,step,a1,a2,level,noise,1,log_file_name,foldername1)
-            peak6_MW, peak6_ODMR = scan_peak(f6,dev0,step,a1,a2,level,noise,1,log_file_name,foldername1)
+            # scan peaks f2, f4, f6, f8
+            #peak2_MW, peak2_ODMR = scan_peak(f2,dev0,step,a1,a2,level,noise,1,log_file_name,foldername1)
+            #peak4_MW, peak4_ODMR = scan_peak(f4,dev0,step,a1,a2,level,noise,1,log_file_name,foldername1)
+            #peak6_MW, peak6_ODMR = scan_peak(f6,dev0,step,a1,a2,level,noise,1,log_file_name,foldername1)
+            #peak8_MW, peak8_ODMR = scan_peak(f8,dev0,step,a1,a2,level,noise,1,log_file_name,foldername1)
+
+            # scan peaks f8, f6, f4, f2
             peak8_MW, peak8_ODMR = scan_peak(f8,dev0,step,a1,a2,level,noise,1,log_file_name,foldername1)
+            peak6_MW, peak6_ODMR = scan_peak(f6,dev0,step,a1,a2,level,noise,1,log_file_name,foldername1)
+            peak4_MW, peak4_ODMR = scan_peak(f4,dev0,step,a1,a2,level,noise,1,log_file_name,foldername1)
+            peak2_MW, peak2_ODMR = scan_peak(f2,dev0,step,a1,a2,level,noise,1,log_file_name,foldername1)
 
             peaks_list = []
 
