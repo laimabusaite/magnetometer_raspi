@@ -29,7 +29,11 @@ if __name__ == '__main__':
     dataframe_coil['Bx_coil_std'], dataframe_coil['By_coil_std'], dataframe_coil[
         'Bz_coil_std'] = utilities.amper2gauss_array(
         dataframe_coil['Ix err'], dataframe_coil['Iy err'], dataframe_coil['Iz err'])
-    # dataframe_coil *= 0.1
+    dataframe_coil *= 0.1
+    dataframe_coil['Bmod_coil'] = np.sqrt(
+        dataframe_coil['Bx_coil']**2 + dataframe_coil['By_coil']**2 + dataframe_coil['Bz_coil']**2)
+    dataframe_coil['Bmod_coil_std'] = np.sqrt(
+        dataframe_coil['Bx_coil_std'] ** 2 + dataframe_coil['By_coil_std'] ** 2 + dataframe_coil['Bz_coil_std'] ** 2)
     print(dataframe_coil)
 
     # dataframe = pd.DataFrame()
@@ -44,7 +48,7 @@ if __name__ == '__main__':
 
     dev_array = np.array([16, 20, 32])
     avg_array = np.array([4, 8, 16, 64])
-    metric_array = np.array(['rate (Hz)'])
+    # metric_array = np.array(['rate (Hz)'])
 
     index_col = pd.MultiIndex.from_product([dev_array, avg_array], names=['dev (MHz)', 'avg'])
 
@@ -52,8 +56,13 @@ if __name__ == '__main__':
     print(dataframe_rate)
 
     B_array = np.array(['Bx', 'By', 'Bz', 'Bmod'])
-    index_col = pd.MultiIndex.from_product([dev_array, avg_array, B_array], names=['dev (MHz)', 'avg', 'B_std (mT)'])
-    dataframe_accuracy = pd.DataFrame(index=[0, 1, 3, 5], columns=index_col)
+    B_folder_array = np.array([0, 1, 3, 5])
+    B_value_array = np.array([])
+    metric_array = np.array(['B (mT)', 'B_std (mT)'])
+    index_row = pd.MultiIndex.from_product([B_folder_array, B_array, B_value_array, B_value_array],
+                                           names=['', '', 'B coil (mT)', 'B coil std (mT)'])
+    index_col = pd.MultiIndex.from_product([dev_array, avg_array, metric_array], names=['dev (MHz)', 'avg', ''])
+    dataframe_accuracy = pd.DataFrame(index=index_row, columns=index_col)
 
     # dataframe_rate = pd.DataFrame(index=[0, 1, 3, 5], columns=['dev (MHz)', 'avg', 'rate (Hz)'])
     dataframe_list = []
@@ -87,6 +96,8 @@ if __name__ == '__main__':
             a = log_file_split[3]
             dev = int(log_file[dev_idx + 4:avg_idx])  # float(log_file_split[4])
             avg = int(log_file[avg_idx + 4:dot_idx])  # float(log_file_split[5])
+
+
 
 
             B_dataframe_temp = pd.read_csv(log_file, names=['Bx', 'By', 'Bz', 'B'], delimiter='\t')
@@ -134,10 +145,49 @@ if __name__ == '__main__':
                 # dataframe_rate.loc[B_gauss, 'dev (MHz)'] = dev
                 # dataframe_rate.loc[B_gauss, 'avg'] = avg
                 # dataframe_rate.loc[B_gauss, 'rate (Hz)'] = rate
-                dataframe_accuracy.loc[B_gauss, (dev, avg, 'Bx')] = B_std['Bx']
-                dataframe_accuracy.loc[B_gauss, (dev, avg, 'By')] = B_std['By']
-                dataframe_accuracy.loc[B_gauss, (dev, avg, 'Bz')] = B_std['Bz']
-                dataframe_accuracy.loc[B_gauss, (dev, avg, 'Bmod')] = B_std['B']
+                # dataframe_accuracy.loc[B_gauss, (dev, avg, 'Bx')] = B_std['Bx']
+                # dataframe_accuracy.loc[B_gauss, (dev, avg, 'By')] = B_std['By']
+                # dataframe_accuracy.loc[B_gauss, (dev, avg, 'Bz')] = B_std['Bz']
+                # dataframe_accuracy.loc[B_gauss, (dev, avg, 'Bmod')] = B_std['B']
+
+                # dataframe_accuracy.loc[(B_gauss, 'Bx'), (dev, avg)] = B_std['Bx']
+                # dataframe_accuracy.loc[(B_gauss, 'By'), (dev, avg)] = B_std['By']
+                # dataframe_accuracy.loc[(B_gauss, 'Bz'), (dev, avg)] = B_std['Bz']
+                # dataframe_accuracy.loc[(B_gauss, 'Bmod'), (dev, avg)] = B_std['B']
+
+                # dataframe_accuracy.loc[(B_gauss, 'Bx'), (dev, avg, 'B_std (mT)')] = B_std['Bx']
+                # dataframe_accuracy.loc[(B_gauss, 'By'), (dev, avg, 'B_std (mT)')] = B_std['By']
+                # dataframe_accuracy.loc[(B_gauss, 'Bz'), (dev, avg, 'B_std (mT)')] = B_std['Bz']
+                # dataframe_accuracy.loc[(B_gauss, 'Bmod'), (dev, avg, 'B_std (mT)')] = B_std['B']
+                #
+                # dataframe_accuracy.loc[(B_gauss, 'Bx'), (dev, avg, 'B (mT)')] = B_mean['Bx']
+                # dataframe_accuracy.loc[(B_gauss, 'By'), (dev, avg, 'B (mT)')] = B_mean['By']
+                # dataframe_accuracy.loc[(B_gauss, 'Bz'), (dev, avg, 'B (mT)')] = B_mean['Bz']
+                # dataframe_accuracy.loc[(B_gauss, 'Bmod'), (dev, avg, 'B (mT)')] = B_mean['B']
+
+                print(dataframe_coil.loc[idx_folder, 'Bx_coil'], dataframe_coil.loc[idx_folder, 'Bx_coil_std'])
+                print(dataframe_coil.loc[idx_folder, 'Bmod_coil'], dataframe_coil.loc[idx_folder, 'Bmod_coil_std'])
+
+                dataframe_accuracy.loc[(B_gauss, 'Bx', dataframe_coil.loc[idx_folder, 'Bx_coil'],
+                                        dataframe_coil.loc[idx_folder, 'Bx_coil_std']),
+                                       (dev, avg, 'B_std (mT)')] = B_std['Bx']
+                dataframe_accuracy.loc[(B_gauss, 'By', dataframe_coil.loc[idx_folder, 'By_coil'],
+                                        dataframe_coil.loc[idx_folder, 'By_coil_std']), (dev, avg, 'B_std (mT)')] = B_std['By']
+                dataframe_accuracy.loc[(B_gauss, 'Bz', dataframe_coil.loc[idx_folder, 'Bz_coil'],
+                                        dataframe_coil.loc[idx_folder, 'Bz_coil_std']), (dev, avg, 'B_std (mT)')] = B_std['Bz']
+                dataframe_accuracy.loc[(B_gauss, 'Bmod', dataframe_coil.loc[idx_folder, 'Bmod_coil'],
+                                        dataframe_coil.loc[idx_folder, 'Bmod_coil_std']), (dev, avg, 'B_std (mT)')] = B_std['B']
+
+                dataframe_accuracy.loc[(B_gauss, 'Bx', dataframe_coil.loc[idx_folder, 'Bx_coil'],
+                                        dataframe_coil.loc[idx_folder, 'Bx_coil_std']), (dev, avg, 'B (mT)')] = B_mean['Bx']
+                dataframe_accuracy.loc[(B_gauss, 'By', dataframe_coil.loc[idx_folder, 'By_coil'],
+                                        dataframe_coil.loc[idx_folder, 'By_coil_std']), (dev, avg, 'B (mT)')] = B_mean['By']
+                dataframe_accuracy.loc[(B_gauss, 'Bz', dataframe_coil.loc[idx_folder, 'Bz_coil'],
+                                        dataframe_coil.loc[idx_folder, 'Bz_coil_std']), (dev, avg, 'B (mT)')] = B_mean['Bz']
+                dataframe_accuracy.loc[(B_gauss, 'Bmod', dataframe_coil.loc[idx_folder, 'Bmod_coil'],
+                                        dataframe_coil.loc[idx_folder, 'Bmod_coil_std']), (dev, avg, 'B (mT)')] = B_mean['B']
+
+
 
     # dataframe_rate = dataframe_rate.reindex(sorted(dataframe_rate.columns), axis=1)
     # dataframe_rate = dataframe_rate.sort_index(axis=1)
@@ -163,6 +213,6 @@ if __name__ == '__main__':
 
 
     dataframe_rate.to_csv('tables/table_rate.csv')
-    # dataframe_accuracy.to_csv('tables/table_accuracy.csv')
+    dataframe_accuracy.to_csv('tables/table_accuracy.csv')
 
     # print(dataframe_rate.T)

@@ -14,8 +14,10 @@ from utilities import *
 if __name__ == '__main__':
 
     dB = 0.001
-    foldername = 'RQnc/arb1/0G'
-    num = 9
+    # foldername = 'RQnc/arb1/0G'
+    # foldername = 'RQnc/reverse_scan'
+    foldername = 'RQnc/bidirectional_scan'
+    num = 1
     if num == 13:
         num_str = f'{num}_real'
     else:
@@ -85,12 +87,18 @@ if __name__ == '__main__':
             print(idx, idx2)
             # print(filename, type(filename))
             filename_split = re.split('peak|_', filename)
-            # print(filename_split)
+            print(filename_split)
+            peak_idx = filename.find('peak')
+            date_idx = filename.find('_2021-07')
+            fr_centr = float(filename[peak_idx + 4:date_idx])
             # print(filename_split[6])
-            if 'real' in filename_split:
-                fr_centr = float(filename_split[6])
-            else:
-                fr_centr = float(filename_split[5])
+            # if 'real' in filename_split:
+            #     fr_centr = float(filename_split[6])
+            # else:
+            #     fr_centr = float(filename_split[5])
+
+            #fit full scan
+
             fr_dev = 15
             x_full = \
             dataframe_full[(dataframe_full['MW'] >= fr_centr - fr_dev) & (dataframe_full['MW'] <= fr_centr + fr_dev)]['MW']
@@ -98,7 +106,11 @@ if __name__ == '__main__':
             dataframe_full[(dataframe_full['MW'] >= fr_centr - fr_dev) & (dataframe_full['MW'] <= fr_centr + fr_dev)][
                 'ODMR']
 
-            peak_full = detect_peaks(x_full, y_full, debug=True)
+            if idx == 0:
+                debug=True
+            else:
+                debug=False
+            peak_full = detect_peaks(x_full, y_full, debug=debug)
             peak_full_list.append(peak_full)
 
             dataframe = pd.read_csv(filename, names=['MW', 'ODMR'], sep='\t')
