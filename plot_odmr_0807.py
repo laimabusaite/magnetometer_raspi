@@ -54,7 +54,7 @@ if __name__ == '__main__':
                    'Mz2': 1.77, 'Mz3': 1.83, 'Mz4': 2.04}
 
     parameters = fit_odmr.fit_full_odmr(dataframe_full['MW'], dataframe_full['ODMR'], init_params=init_params,
-                                        debug=False)
+                                        debug=False, save=False)
 
     D = parameters["D"]  # 2867.61273
     Mz_array = np.array([parameters["Mz1"], parameters["Mz2"], parameters["Mz3"], parameters[
