@@ -110,7 +110,8 @@ if __name__ == '__main__':
         contrast = (y0_fitted - min(y_fitted)) / y0_fitted
         contrast1 = (max(y_fitted) - min(y_fitted))/max(y_fitted)
         contrast2 = amplitude_fitted / gamma_fitted / 2.
-        print('contrast', contrast, contrast1, contrast2)
+        contrast3 = (amplitude_fitted * gamma_fitted / 2. / np.pi) / y0_fitted
+        print('contrast', contrast, contrast1, contrast2, contrast3)
 
         peak_conditions = [(2500, 2750), (2800, 3100), (3170, 3300), (3340, 3500)]
 

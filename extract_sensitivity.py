@@ -12,6 +12,22 @@ import fit_odmr
 import utilities
 from detect_peaks import detect_peaks_weighted
 
+def calculate_sensitivity(contrast, width):
+    h_plank = 6.63e-34
+    muB = 9.27e-24
+    c = 3e8 # m/s
+    wavelenght = 700 * 1e-9
+    voltage = 7.85 # V
+    responsivity = 0.4
+    gain = 1.0e5
+    E1 = h_plank * c / wavelenght
+    E = voltage / responsivity / gain
+    photon_count = E / E1
+    constant =4/(3*np.sqrt(3))*(h_plank/2./muB)
+
+    sensitivity = constant * width * 1e6 / contrast / np.sqrt(photon_count) * 1e9
+    return sensitivity
+
 
 def extract_width(x_data, y_data, debug=False):
     x_data = np.array(x_data)
@@ -31,7 +47,7 @@ def extract_width(x_data, y_data, debug=False):
     # except Exception as e:
     #     print(e)
 
-    return popt
+    return popt, pconv
 
 
 def import_coil_magnetic_field(filename_coil):
@@ -122,6 +138,8 @@ if __name__ == '__main__':
             peak_conditions = [(2500, 2750), (2800, 3100), (3170, 3300), (3340, 3500)]
             contrast_array = np.empty((4, len(filename_odmr_list[:])//4))
             width_array = np.empty((4, len(filename_odmr_list[:])//4))
+            contrast_err_array = np.empty((4, len(filename_odmr_list[:]) // 4))
+            width_err_array = np.empty((4, len(filename_odmr_list[:]) // 4))
             for idx_odmr, filename in enumerate(filename_odmr_list[:]):
                 print(idx_odmr, filename)
 
@@ -133,8 +151,11 @@ if __name__ == '__main__':
                 dataframe_odmr = pd.read_csv(filename, names=['MW', 'ODMR'], sep='\t')
                 x_data = np.array(dataframe_odmr['MW'])
                 y_data = np.array(dataframe_odmr['ODMR'])
-                [x0_fitted, amplitude_fitted, gamma_fitted, y0_fitted] = extract_width(x_data, y_data, debug=True)
+                [x0_fitted, amplitude_fitted, gamma_fitted, y0_fitted], pcov = extract_width(x_data, y_data, debug=True)
+                perr = np.sqrt(np.diag(pcov))
+                [x0_err, amplitude_err, gamma_err, y0_err] = perr
                 print(x0_fitted, amplitude_fitted, gamma_fitted, y0_fitted)
+                print(x0_err, amplitude_err, gamma_err, y0_err)
 
                 x_fitted = np.linspace(x_data[0] - 100, x_data[-1] + 100, 1000)
                 y_fitted = utilities.lorentz(x_fitted, x0_fitted, amplitude_fitted, gamma_fitted, y0_fitted)
@@ -145,6 +166,8 @@ if __name__ == '__main__':
                         peak_nr = (idx1 + 1) * 2
                         contrast_array[idx1,idx_odmr//4] = contrast
                         width_array[idx1,idx_odmr//4] = gamma_fitted
+                        width_err_array[idx1,idx_odmr//4] = gamma_err
+                        contrast_err_array[idx1, idx_odmr // 4] = y0_err
 
                 plt.plot(x_data, y_data, marker='o')
                 plt.plot(x_fitted, y_fitted)
@@ -153,12 +176,25 @@ if __name__ == '__main__':
             contrast_mean = np.mean(contrast_array, axis=1)
             width_std = np.std(width_array, axis=1) / np.sqrt(len(width_array) - 1)
             contrast_std = np.std(contrast_array, axis=1) / np.sqrt(len(contrast_array) - 1)
-            print(width_array)
-            print(width_array.shape)
-            print(width_mean)
+            width_err_mean = np.mean(width_err_array, axis=1)
+            contrast_err_mean = np.mean(contrast_err_array, axis=1)
+            # print(width_array)
+            # print(width_array.shape)
+            width_err = np.sqrt(width_std**2 + width_err_mean**2)
+            contrast_err = np.sqrt(contrast_std ** 2 + contrast_err_mean ** 2)
+            print(width_mean, width_std, width_err_mean, width_err)
+            print(contrast_mean, contrast_std, contrast_err_mean, contrast_err)
 
             B_mean = B_dataframe_temp.mean()
             B_std = B_dataframe_temp.std() / np.sqrt(len(B_dataframe_temp) - 1)
+
+            sensitivity = np.array([calculate_sensitivity(contrast_mean[idx_s], width_mean[idx_s]) for idx_s in range(len(width_mean))])
+            sensitivity_mean = np.mean(sensitivity)
+            sensitivity_err = np.std(sensitivity) / np.sqrt(len(sensitivity) - 1)
+            print(sensitivity, sensitivity_mean, sensitivity_err)
+
+            sens_test = calculate_sensitivity(0.01, 15)
+            print('sensitivity test = ', sens_test)
 
             data = {
                 'B index': B_set,
@@ -166,43 +202,46 @@ if __name__ == '__main__':
                 'By coil (mT)': dataframe_coil.loc[idx_folder, 'By_coil'],
                 'Bz coil (mT)': dataframe_coil.loc[idx_folder, 'Bz_coil'],
                 'Bmod coil (mT)': dataframe_coil.loc[idx_folder, 'Bmod_coil'],
-                'Bx coil std (mT)': dataframe_coil.loc[idx_folder, 'Bx_coil_std'],
-                'By coil std (mT)': dataframe_coil.loc[idx_folder, 'By_coil_std'],
-                'Bz coil std (mT)': dataframe_coil.loc[idx_folder, 'Bz_coil_std'],
-                'Bmod coil std (mT)': dataframe_coil.loc[idx_folder, 'Bmod_coil_std'],
+                'Bx coil stderr (mT)': dataframe_coil.loc[idx_folder, 'Bx_coil_std'],
+                'By coil stderr (mT)': dataframe_coil.loc[idx_folder, 'By_coil_std'],
+                'Bz coil stderr (mT)': dataframe_coil.loc[idx_folder, 'Bz_coil_std'],
+                'Bmod coil stderr (mT)': dataframe_coil.loc[idx_folder, 'Bmod_coil_std'],
                 'Bx measured (mT)' : B_mean['Bx'] * 0.1,
                 'By measured (mT)': B_mean['By'] * 0.1,
                 'Bz measured (mT)': B_mean['Bz'] * 0.1,
                 'Bmod measured (mT)': B_mean['B'] * 0.1,
-                'Bx measured std (mT)': B_std['Bx'] * 0.1,
-                'By measured std (mT)': B_std['By'] * 0.1,
-                'Bz measured std (mT)': B_std['Bz'] * 0.1,
-                'Bmod measured std (mT)': B_std['B'] * 0.1,
+                'Bx measured stderr (mT)': B_std['Bx'] * 0.1,
+                'By measured stderr (mT)': B_std['By'] * 0.1,
+                'Bz measured stderr (mT)': B_std['Bz'] * 0.1,
+                'Bmod measured stderr (mT)': B_std['B'] * 0.1,
                 'avg': avg,
                 'dev (MHz)': dev,
                 'contrast 2': contrast_mean[0],
                 'contrast 4': contrast_mean[1],
                 'contrast 6': contrast_mean[2],
                 'contrast 8': contrast_mean[3],
-                'contrast std 2': contrast_std[0],
-                'contrast std 4': contrast_std[1],
-                'contrast std 6': contrast_std[2],
-                'contrast std 8': contrast_std[3],
+                'contrast stderr 2': contrast_err[0],
+                'contrast stderr 4': contrast_err[1],
+                'contrast stderr 6': contrast_err[2],
+                'contrast stderr 8': contrast_err[3],
                 'width 2': width_mean[0],
                 'width 4': width_mean[1],
                 'width 6': width_mean[2],
                 'width 8': width_mean[3],
-                'width std 2': width_std[0],
-                'width std 4': width_std[1],
-                'width std 6': width_std[2],
-                'width std 8': width_std[3],
+                'width stderr 2': width_err[0],
+                'width stderr 4': width_err[1],
+                'width stderr 6': width_err[2],
+                'width stderr 8': width_err[3],
+                'sensitivity (nT/Hz1/2)': sensitivity_mean,
+                'sensitivity stderr (nT/Hz1/2)': sensitivity_err,
+                'point count': avg * dev
 
             }
             print(data)
             dataframe_sensitivity = dataframe_sensitivity.append(data, ignore_index=True)
 
-    print(dataframe_sensitivity)
-
+    # print(dataframe_sensitivity)
+    #
     dataframe_sensitivity.to_csv('tables/table_sensitivity.csv')
 
     plt.show()
