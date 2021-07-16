@@ -76,7 +76,8 @@ if __name__ == '__main__':
 
         plt.errorbar(x=dataframe_temp['x_data'], y=dataframe_temp['Bmod_measured'],
                      yerr=dataframe_temp['Bmod_measured_std'], capsize=2, marker='o', ls='', ms=4, c=color, label='B measured')
-        plt.xlabel(r'Number of averages $\times$ frequency range (MHz)')
+        # plt.xlabel(r'Number of averages $\times$ frequency range (MHz)')
+        plt.xlabel(r'Number of averages $\times$ number of measured points')
         plt.ylabel(r'Magnetic field |B| (mT)')
         plt.xlim(0, 2200)
         plt.tight_layout()
