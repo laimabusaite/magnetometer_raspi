@@ -354,5 +354,5 @@ if __name__ == '__main__':
                    'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
     save_filename = "ODMR_fit_parameters.json"
     parameters = fit_full_odmr(x_data, y_data, init_params=init_params, save_filename=save_filename, debug=True,
-                               save=True)
+                               save=False)
     print(parameters)
