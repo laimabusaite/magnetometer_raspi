@@ -137,24 +137,50 @@ def normalize_data(x_data, y_data, debug=False):
     # normalized odmr
     y_norm = 1. - (y_data - min(y_data)) / (max(y_data) - min(y_data))
     # y_base = y_norm
-    y_base = savgol_filter(y_norm, 13, 2)
+    step_size = (max(x_data) - min(x_data)) / len(x_data)
+    steps_per_mhz = int(len(x_data) / (max(x_data) - min(x_data)))
+    print('step size', step_size, steps_per_mhz)
+    y_base = savgol_filter(y_norm, 12*steps_per_mhz+1, 2)
 
-    min_distance_min = len(x_data) / (max(x_data) - min(x_data)) * 40
+    min_distance = steps_per_mhz * 50
+    height = 0.1  # 0.055  # (max(-dataframe['ODMR']) - min(-dataframe['ODMR'])) * 0.1
+    peaks00, properties00 = find_peaks(y_base, distance=min_distance,
+                                   height=height)  # , width=[min_width,max_width])
+    print(peaks00)
+    print(int(peaks00[0] - steps_per_mhz * 10))
+    print(y_base[:int(peaks00[0] - steps_per_mhz * 20)])
+    print(y_base[int(peaks00[0] + steps_per_mhz * 20): int(peaks00[1] - steps_per_mhz * 20)])
+    base_array_selected = np.concatenate((
+        y_base[:int(peaks00[0] - steps_per_mhz * 20)],
+        y_base[int(peaks00[0] + steps_per_mhz * 20): int(peaks00[1] - steps_per_mhz * 20)],
+        y_base[int(peaks00[1] + steps_per_mhz * 20): int(peaks00[2] - steps_per_mhz * 20)],
+        y_base[int(peaks00[2] + steps_per_mhz * 20): int(peaks00[3] - steps_per_mhz * 20)],
+        y_base[int(peaks00[3] + steps_per_mhz * 20): int(peaks00[4] - steps_per_mhz * 20)],
+        y_base[int(peaks00[4] + steps_per_mhz * 20): int(peaks00[5] - steps_per_mhz * 20)],
+        y_base[int(peaks00[5] + steps_per_mhz * 20): int(peaks00[6] - steps_per_mhz * 20)],
+        y_base[int(peaks00[6] + steps_per_mhz * 20): int(peaks00[7] - steps_per_mhz * 20)],
+        y_base[int(peaks00[7] + steps_per_mhz * 20):],
+                        ))
+    base_mean = np.mean(base_array_selected)
+
+    min_distance_min = steps_per_mhz * 40
+    print('mean base',base_mean, np.mean((1-y_base)**5*y_base)/np.mean((1-y_base)**5))
     peaks_min, properties_min = find_peaks(-y_base, distance=min_distance_min)
     peak_positions_min = np.array(x_data[peaks_min])
-    peak_amplitudes_min = np.array(y_base[peaks_min])
+    # peak_amplitudes_min = np.array(y_base[peaks_min])
+    peak_amplitudes_min = np.full_like(peak_positions_min, base_mean)
 
     interpolate_peaks_min = interpolate.interp1d(peak_positions_min, peak_amplitudes_min, kind='linear',
                                                  fill_value="extrapolate")  # (peak_amplitudes_min[0], peak_amplitudes_min[-1]))#"#extrapolate")
     wavelet_min = interpolate_peaks_min(x_data)
 
     # y_smooth = y_norm - wavelet_min
-    y_smooth = savgol_filter(y_norm - wavelet_min, 11, 2)
+    y_smooth = savgol_filter(y_norm - wavelet_min, 10*steps_per_mhz+1, 2)
 
-    min_distance = len(x_data) / (max(x_data) - min(x_data)) * 50
+    min_distance = steps_per_mhz * 50
     height = 0.1 # 0.055  # (max(-dataframe['ODMR']) - min(-dataframe['ODMR'])) * 0.1
-    min_width = len(x_data) / (max(x_data) - min(x_data)) * 5
-    max_width = len(x_data) / (max(x_data) - min(x_data)) * 15
+    min_width = steps_per_mhz * 5
+    max_width = steps_per_mhz * 15
     peaks, properties = find_peaks(y_smooth, distance=min_distance,
                                    height=height)  # , width=[min_width,max_width])
     # peakso, prperties = find_peaks(y_smooth, prominence=0.004, width=[5, 25])
@@ -281,15 +307,17 @@ def fit_full_odmr(x_data, y_data,
                               varyMz=False, varyFraction=True, save_filename=save_filename, save=save)
     print('Result voigt')
     print(nv_for_fit.fitResultLorentz.best_values)
-
-    min_distance = len(x_data) / (max(x_data) - min(x_data)) * 50
+    steps_per_mhz = int(len(x_data) / (max(x_data) - min(x_data)))
+    min_distance = steps_per_mhz * 50
     height = 0.5
     peaks_fit, properties_fit = find_peaks(nv_for_fit.fitResultLorentz.best_fit, distance=min_distance,
                                            height=height)
     print(peaks_exp, peaks_fit)
     peak_diff = peaks_exp - peaks_fit
     print('peak diff idx', peak_diff)
-    if (peak_diff > 2).any():
+    peak_diff_mhz = peak_diff / steps_per_mhz
+    print('peak diff mhz', peak_diff_mhz)
+    if (np.abs(peak_diff_mhz) > 2).any():
         print('Optimum values not found. Adjust initial conditions.')
 
     if debug:
@@ -324,11 +352,11 @@ def get_initial_magnetic_field(x_data, y_data):
 if __name__ == '__main__':
     import glob
 
-    filedir = 'test_data_rp'
-    filenames = glob.glob(f'{filedir}/test_full_scan*.dat')
+    filedir = 'RQnc/steps/0G'
+    filenames = glob.glob(f'{filedir}/full_scan*.dat')
 
     print(filenames)
-    filename = filenames[1]
+    filename = filenames[0]
 
     # filename = 'full_scan_rp_1.dat'
 
@@ -354,5 +382,5 @@ if __name__ == '__main__':
                    'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
     save_filename = "ODMR_fit_parameters.json"
     parameters = fit_full_odmr(x_data, y_data, init_params=init_params, save_filename=save_filename, debug=True,
-                               save=True)
+                               save=False)
     print(parameters)
