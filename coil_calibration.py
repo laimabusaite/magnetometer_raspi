@@ -26,6 +26,10 @@ if __name__ == '__main__':
         By_list = []
         Bz_list = []
         Bmod_list = []
+        Bx_std_list = []
+        By_std_list = []
+        Bz_std_list = []
+        Bmod_std_list = []
         for filepath in filepath0_list[:]:
             head_tail = os.path.split(filepath)
             filename = head_tail[1]
@@ -42,7 +46,7 @@ if __name__ == '__main__':
             current_z_list.append(current_z)
 
             dataframe = pd.read_csv(filepath, sep='\t', skiprows=2, header=0)
-            # print(dataframe)
+            print(dataframe)
 
             dataframe_mean = dataframe.mean()
             # print(dataframe_mean)
@@ -59,7 +63,24 @@ if __name__ == '__main__':
             Bmod_list.append(Bmod_mean)
             # print(Bmod_mean)
 
-            print(Bx_mean, By_mean, Bz_mean, Bmod_mean)
+            dataframe_std = dataframe.std()
+            # print(dataframe_mean)
+            Bx_std = dataframe_std[1] / (len(dataframe_std) - 1)
+            Bx_std_list.append(Bx_std)
+            # print(Bx_mean)
+            By_std = dataframe_std[2] / (len(dataframe_std) - 1)
+            By_std_list.append(By_std)
+            # print(By_mean)
+            Bz_std = dataframe_std[3] / (len(dataframe_std) - 1)
+            Bz_std_list.append(Bz_std)
+            # print(Bz_mean)
+            Bmod_std = dataframe_std[4] / (len(dataframe_std) - 1)
+            Bmod_std_list.append(Bmod_std)
+            # print(Bmod_mean)
+
+            # print(Bx_mean, By_mean, Bz_mean, Bmod_mean)
+            # print(Bx_std, By_std, Bz_std, Bmod_std)
+            # print(Bx_std/Bx_mean, By_std/By_mean, Bz_std/Bz_mean, Bmod_std/Bmod_mean)
 
         data_axis = {
             'current_x_coil': current_x_list,
@@ -69,6 +90,10 @@ if __name__ == '__main__':
             'By_probe': By_list,
             'Bz_probe': Bz_list,
             'Bmod_probe': Bmod_list,
+            'Bx_std_probe': Bx_std_list,
+            'By_std_probe': By_std_list,
+            'Bz_std_probe': Bz_std_list,
+            'Bmod_std_probe': Bmod_std_list
         }
         dataframe_axis = pd.DataFrame(data=data_axis)
         dataframe_axis.sort_values(by=f'current_{dir_axis}_coil', inplace=True)
@@ -123,6 +148,17 @@ if __name__ == '__main__':
 
         print(dataframe_axis)
         # dataframe_axis.to_csv(f'coil_calibration/extracted_data/{dir_axis}_coil.dat', index=False)
+
+        plt.figure()
+        plt.title(f'{dir_axis}-axis std')
+        plt.plot(dataframe_axis[f'current_{dir_axis}_coil'], np.abs(dataframe_axis['Bx_std_probe']), label='Bx std')
+        plt.plot(dataframe_axis[f'current_{dir_axis}_coil'], np.abs(dataframe_axis['By_std_probe']), label='By std')
+        plt.plot(dataframe_axis[f'current_{dir_axis}_coil'], np.abs(dataframe_axis['Bz_std_probe']), label='Bz std')
+        plt.plot(dataframe_axis[f'current_{dir_axis}_coil'], np.abs(dataframe_axis['Bmod_std_probe']), label='Bmod std')
+        plt.xlabel('Current, mA')
+        plt.ylabel('B std, mT')
+        plt.legend()
+
 
 
     linear_parameters = {'slope' : slope_list,
