@@ -146,10 +146,12 @@ def normalize_data(x_data, y_data, debug=False):
     height = 0.1  # 0.055  # (max(-dataframe['ODMR']) - min(-dataframe['ODMR'])) * 0.1
     peaks00, properties00 = find_peaks(y_base, distance=min_distance,
                                    height=height)  # , width=[min_width,max_width])
-    print(peaks00)
-    print(int(peaks00[0] - steps_per_mhz * 10))
-    print(y_base[:int(peaks00[0] - steps_per_mhz * 20)])
-    print(y_base[int(peaks00[0] + steps_per_mhz * 20): int(peaks00[1] - steps_per_mhz * 20)])
+    peak_positions00 = np.array(x_data[peaks00])
+    peak_amplitudes00 = np.array(y_base[peaks00])
+    # print(peaks00)
+    # print(int(peaks00[0] - steps_per_mhz * 10))
+    # print(y_base[:int(peaks00[0] - steps_per_mhz * 20)])
+    # print(y_base[int(peaks00[0] + steps_per_mhz * 20): int(peaks00[1] - steps_per_mhz * 20)])
     base_array_selected = np.concatenate((
         y_base[:int(peaks00[0] - steps_per_mhz * 20)],
         y_base[int(peaks00[0] + steps_per_mhz * 20): int(peaks00[1] - steps_per_mhz * 20)],
@@ -164,7 +166,7 @@ def normalize_data(x_data, y_data, debug=False):
     base_mean = np.mean(base_array_selected)
 
     min_distance_min = steps_per_mhz * 40
-    print('mean base',base_mean, np.mean((1-y_base)**5*y_base)/np.mean((1-y_base)**5))
+    # print('mean base',base_mean, np.mean((1-y_base)**5*y_base)/np.mean((1-y_base)**5))
     peaks_min, properties_min = find_peaks(-y_base, distance=min_distance_min)
     peak_positions_min = np.array(x_data[peaks_min])
     # peak_amplitudes_min = np.array(y_base[peaks_min])
@@ -199,18 +201,32 @@ def normalize_data(x_data, y_data, debug=False):
         print(peak_positions)
         print(peak_amplitudes)
 
-        plt.figure(1)
-        plt.plot(x_data, y_norm)
-        plt.plot(x_data, y_base)
-        plt.plot(x_data, wavelet_min)
+        plt.figure(1, figsize=(5,4))
+        plt.plot(x_data, y_norm, c='k', label='measured signal')
+        plt.plot(x_data, y_base, label='smoothed data')
+        plt.plot(x_data, wavelet_min, label='base')
+        plt.plot(peak_positions00, peak_amplitudes00, label='peaks')
+        plt.xlim(x_data[0], x_data[-1])
+        plt.xlabel('Microwave frequency (MHz)')
+        plt.ylabel('Normalized fluorescence intensity (arb. units)')
+        plt.legend()
+        # plt.savefig('/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/fit_odmr/smooth1.pdf')
+        # plt.savefig('/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/fit_odmr/smooth1.png')
 
-        plt.figure(2)
+        plt.figure(2, figsize=(5,4))
         plt.plot(x_data, y_norm - wavelet_min)
         plt.plot(x_data, y_smooth)
         plt.plot(x_data, wavelet)
+        plt.xlim(x_data[0], x_data[-1])
+        plt.xlabel('Microwave frequency (MHz)')
+        plt.ylabel('Normalized fluorescence intensity (arb. units)')
+        # plt.savefig('/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/fit_odmr/smooth2.pdf')
+        # plt.savefig('/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/fit_odmr/smooth2.png')
 
-        plt.figure(3)
-        plt.plot(x_data, y_unitary)
+        plt.figure('unitary', figsize=(5,4))
+        plt.plot(x_data, (y_norm - wavelet_min) / wavelet , c='k', label='normalized data')
+        plt.plot(x_data, y_unitary, c='gray', label='smoothed data')
+        plt.xlim(x_data[0], x_data[-1])
 
         # plt.show()
 
@@ -292,10 +308,15 @@ def fit_full_odmr(x_data, y_data,
         # print(nv_for_fit.fitResultLorentz.fit_report())
         # print('nv_for_fit.fitResultLorentz.best_values')
         # print(nv_for_fit.fitResultLorentz.best_values)
-        # plt.figure()
-        # plt.plot(x_data, y_unitary)
-        plt.plot(x_data, nv_for_fit.summodel.eval(nv_for_fit.params, x=x_data), 'g--')
-        plt.plot(x_data, nv_for_fit.fitResultLorentz.best_fit, 'g-')
+        plt.figure('unitary', figsize=(5,4))
+        # plt.plot(x_data, y_unitary, c='k')
+        plt.plot(x_data, nv_for_fit.summodel.eval(nv_for_fit.params, x=x_data), 'g--', label='initial conditions')
+        # plt.plot(x_data, nv_for_fit.fitResultLorentz.best_fit, 'g-')
+        plt.xlim(x_data[0], x_data[-1])
+        # plt.xlabel('Microwave frequency (MHz)')
+        # plt.ylabel('Normalized fluorescence intensity (arb. units)')
+        # plt.savefig('/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/fit_odmr/fitted.pdf')
+        # plt.savefig('/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/fit_odmr/fitted.png')
         # plt.show()
 
     init_params = nv_for_fit.fitResultLorentz.best_values
@@ -325,8 +346,15 @@ def fit_full_odmr(x_data, y_data,
         # print(nv_for_fit.fitResultLorentz.fit_report())
         # print('nv_for_fit.fitResultLorentz.best_values')
         # print(nv_for_fit.fitResultLorentz.best_values)
-        plt.plot(x_data, nv_for_fit.summodel.eval(nv_for_fit.params, x=x_data), 'b--')
-        plt.plot(x_data, nv_for_fit.fitResultLorentz.best_fit, 'b-')
+        # plt.plot(x_data, nv_for_fit.summodel.eval(nv_for_fit.params, x=x_data), 'b--')
+        plt.figure('unitary', figsize=(5, 4))
+        plt.plot(x_data, nv_for_fit.fitResultLorentz.best_fit, 'b-', label='fit')
+        plt.xlim(x_data[0], x_data[-1])
+        plt.xlabel('Microwave frequency (MHz)')
+        plt.ylabel('Normalized fluorescence intensity (arb. units)')
+        plt.legend()
+        # plt.savefig('/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/fit_odmr/fitted2.pdf')
+        # plt.savefig('/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/fit_odmr/fitted2.png')
         plt.show()
 
     return nv_for_fit.fitResultLorentz.best_values
@@ -357,30 +385,32 @@ if __name__ == '__main__':
 
     print(filenames)
     filename = filenames[0]
+    for filename in filenames[:]:
+        # filename = 'full_scan_rp_1.dat'
 
-    # filename = 'full_scan_rp_1.dat'
+        print(filename)
+        dataframe = import_data(filename)
+        # print(dataframe)
 
-    print(filename)
-    dataframe = import_data(filename)
-    # print(dataframe)
+        x_data = dataframe['MW']
+        y_data = dataframe['ODMR']
 
-    x_data = dataframe['MW']
-    y_data = dataframe['ODMR']
+        B = 200
+        theta = 80
+        phi = 20
+        Blab = CartesianVector(B, theta, phi)
+        # Blab = get_initial_magnetic_field(x_data, y_data) #CartesianVector(B, theta, phi)
+        print(Blab)
 
-    B = 200
-    theta = 80
-    phi = 20
-    Blab = CartesianVector(B, theta, phi)
-    # Blab = get_initial_magnetic_field(x_data, y_data) #CartesianVector(B, theta, phi)
-    print(Blab)
+        B = np.linalg.norm(Blab)
+        print(B)
 
-    B = np.linalg.norm(Blab)
-    print(B)
+        init_params = {'B_labx': Blab[0], 'B_laby': Blab[1], 'B_labz': Blab[2],
+                       'glor': 5, 'D': 2870, 'Mz1': 0,
+                       'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
+        save_filename = "ODMR_fit_parameters.json"
+        parameters = fit_full_odmr(x_data, y_data, init_params=init_params, save_filename=save_filename, debug=True,
+                                   save=False)
+        print(parameters)
 
-    init_params = {'B_labx': Blab[0], 'B_laby': Blab[1], 'B_labz': Blab[2],
-                   'glor': 5, 'D': 2870, 'Mz1': 0,
-                   'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
-    save_filename = "ODMR_fit_parameters.json"
-    parameters = fit_full_odmr(x_data, y_data, init_params=init_params, save_filename=save_filename, debug=True,
-                               save=False)
-    print(parameters)
+    # plt.show()

@@ -3,7 +3,19 @@ import math
 from utilities import *
 import json
 
+
 def calculateInitalSystem(filename="ODMR_fit_parameters.json"):
+    '''
+    Calculates initial system at the start of measurements from parameters saved in json
+    Parameters
+    ----------
+    filename
+
+    Returns
+    -------
+    frequencies0
+    A_inv
+    '''
     # read parameters
     a_file = open(filename, "r")
     parameters = json.load(a_file)
@@ -24,8 +36,16 @@ def calculateInitalSystem(filename="ODMR_fit_parameters.json"):
 
     return frequencies0, A_inv
 
+
 class NVcenter(object):
-    def __init__(self,D=2870, Mz=0):
+    def __init__(self, D=2870, Mz=0):
+        '''
+        Single NV center
+        Parameters
+        ----------
+        D
+        Mz
+        '''
         super(NVcenter, self).__init__()
         self.muB = 1.3996245042  # 1.401 #MHz/G
         self.g_el = 2.00231930436182
@@ -42,26 +62,56 @@ class NVcenter(object):
         self.setMagnetic()
 
     def setNVparameters(self, D=2870, Mz=0):
+        '''
+        Sets NV center parameters and calculates Hamiltonian of ground state
+        Parameters
+        ----------
+        D - zero field splitting
+        Mz - strain
+        '''
         self.D = D
         self.Mz = Mz
         self.dim = 3  # number of states
         self.DSmat = (self.D + self.Mz) * np.dot(self.Sz, self.Sz)
 
     def setMagnetic(self, Bx=0, By=0, Bz=0):
-        """Set magnetic field in Cartesian coordinated Bx, By, Bz"""
+        '''
+        Set magnetic field in Cartesian coordinates Bx, By, Bz.
+        Calculates magnetic field Hamiltonian
+        Parameters
+        ----------
+        Bx
+        By
+        Bz
+        '''
         self.Bx = Bx  # MHz (magnetic field interaction along x)
         self.By = By  # MHz (magnetic field interaction along y)
         self.Bz = Bz  # MHz (magnetic field interaction along z)
         self.BSmat = self.g_el * self.muB * (self.Bx * self.Sx + self.By * self.Sy + self.Bz * self.Sz)
 
-    def calculateHamiltonian(self):  # Compute new eigenstates and respective energies
+    def calculateHamiltonian(self):
+        '''
+        Sets full Hamiltonain and computes new eigenstates and respective energies
+        '''
         self.H = self.DSmat + self.BSmat
         self.eVals, self.eVecs = np.linalg.eigh(self.H, UPLO='U')
 
     def calculateInteraction(self):
+        '''
+        Calculates interaction Hamiltonian
+        '''
         self.MWham = np.dot(np.abs(self.eVecs.transpose().conjugate()), np.dot(self.Sx, np.abs(self.eVecs)))
 
     def calculatePeaks(self, omega):
+        '''
+        Calculated transiiton frequencies and amplitudes in frequency range omega
+        Parameters
+        ----------
+        omega - list or array
+
+        Returns
+        -------
+        '''
         self.calculateHamiltonian()
         self.calculateInteraction()
         frequencies = np.tile(self.eVals, self.dim).reshape(self.dim, -1) - np.tile(self.eVals, self.dim).reshape(
@@ -74,6 +124,13 @@ class NVcenter(object):
         self.amplitudes = np.extract(condlist, amplitudes)
 
     def nv_lorentz(self, omega, g_lor):
+        '''
+        Calculate Lorentzian curve
+        Parameters
+        ----------
+        omega
+        g_lor
+        '''
         self.calculatePeaks(omega)
         res = lor_curve(omega, self.frequencies, self.amplitudes, g_lor)
         # res = gauss_curve(omega, self.frequencies, self.amplitudes, g_lor)
@@ -86,6 +143,15 @@ class NVcenter(object):
             print(e)
 
     def nv_pseudo_voigt(self, omega, g_lor, asym_coef, fraction):
+        '''
+        Calculate Voigt curve
+        Parameters
+        ----------
+        omega
+        g_lor
+        asym_coef
+        fraction
+        '''
         self.calculatePeaks(omega)
         res = asymetrical_voigt_curve(omega, self.frequencies, self.amplitudes, g_lor, asym_coef, fraction)
         try:
@@ -96,9 +162,15 @@ class NVcenter(object):
             print(e)
 
 
-
 class NVcenterSet(object):
     def __init__(self, D=2870, Mz_array=np.array([0, 0, 0, 0])):
+        '''
+        A set of four NV center orientations in crystal coordinate system (100)
+        Parameters
+        ----------
+        D
+        Mz_array
+        '''
         # super(NVcenterSet, self).__init__()
         self.rNV = 1. / math.sqrt(3.) * np.array([
             [-1, -1, -1],
@@ -113,18 +185,39 @@ class NVcenterSet(object):
                                 NVcenter(D, Mz_array[3])])
         self.setMagnetic()
 
-    def setNVparameters(self, D=2870, Mz_array=np.array([0,0,0,0])):
+    def setNVparameters(self, D=2870, Mz_array=np.array([0, 0, 0, 0])):
+        '''
+
+        Parameters
+        ----------
+        D
+        Mz_array
+        '''
         for m in range(4):
             self.nvlist[m].setNVparameters(self, D=D, Mz=Mz_array[m])
 
     def setMagnetic(self, B_lab=np.array([0.0, 0.0, 0.0])):
-        """Set magnetic field in Cartesian coordinated Bx, By, Bz"""
-        self.Bx = B_lab[0]  # MHz (magnetic field interaction along x)
-        self.By = B_lab[1]  # MHz (magnetic field interaction along y)
-        self.Bz = B_lab[2]  # MHz (magnetic field interaction along z)
+        '''
+        Set magnetic field in Cartesian coordinates Bx, By, Bz.
+        Calculates magnetic field Hamiltonian
+        Parameters
+        ----------
+        Bx
+        By
+        Bz
+        '''
+        self.Bx = B_lab[0]  # G (magnetic field interaction along x)
+        self.By = B_lab[1]  # G (magnetic field interaction along y)
+        self.Bz = B_lab[2]  # G (magnetic field interaction along z)
         self.B_lab = B_lab
 
     def all_frequencies(self, frequencyRange):
+        '''
+        Calculate 8 transition frequencies of NV center set in frequencyRange
+        Parameters
+        ----------
+        frequencyRange
+        '''
         B = np.linalg.norm(self.B_lab)
         self.frequencies = np.empty((4, 2), dtype='float')
         for m in range(4):
@@ -141,6 +234,13 @@ class NVcenterSet(object):
         return np.array(self.frequencies)
 
     def four_frequencies(self, frequencyRange, B_total):
+        '''
+        Calculate 4 transition frequencies (2,4,6,8) of NV center set in frequencyRange at magnetid field B_total
+        Parameters
+        ----------
+        frequencyRange
+        B_total
+        '''
         B = np.linalg.norm(B_total)
         frequencies = np.empty((4, 2), dtype='object')
         for m in range(4):
@@ -161,6 +261,13 @@ class NVcenterSet(object):
         return self.four_frequencies_list
 
     def sum_odmr(self, x, glor):
+        '''
+        Calculate sum of Lorentzian curves for all peaks
+        Parameters
+        ----------
+        x
+        glor
+        '''
         # self.setMagnetic(B_lab)
         B = np.linalg.norm(self.B_lab)
         self.ODMR = np.empty(4, dtype='object')
@@ -181,6 +288,14 @@ class NVcenterSet(object):
         return sum_odmr
 
     def sum_odmr_voigt(self, x, glor, fraction):
+        '''
+        Calculate sum of Voigt curves for all peaks
+        Parameters
+        ----------
+        x
+        glor
+        fraction
+        '''
         asym_coef = 0
         # fraction = 0.9
         # B_lab = np.array([B_labx, B_laby, B_labz])
@@ -206,8 +321,12 @@ class NVcenterSet(object):
 
     def calculateAinv(self, B0, Bsens=np.array([0, 0, 0]), omega_limits=np.array([2000, 3800]), dB=0.001):
         '''
-        B0 - constant bias magnetic field
-        Bsens - small additional magnetic field (the one being measured)
+        Calculate pseudo-inverse A matrix
+        Parameters
+        ----------
+        B0  - constant bias magnetic field
+        Bsens  - small additional magnetic field (the one being measured)
+        omega_limits - limits for transition frequencies
         dB - step size of derivatives
         '''
         B_total = B0 + Bsens
@@ -225,7 +344,7 @@ class NVcenterSet(object):
     # def deltaB_from_deltaFrequencies(self, A_inv, deltaFrequencies):
     #     return np.dot(A_inv, deltaFrequencies.T)
 
-    def noisy_odmr(self, x, glor, NVparameters, noise_std = 0.005):
+    def noisy_odmr(self, x, glor, NVparameters, noise_std=0.005):
         '''
         parameters = {"B_labx": 169.12, "B_laby": 87.71, "B_labz": 40.39, "glor": 4.44, "D": 2867.61, "Mz1": 1.85, "Mz2": 2.16, "Mz3": 1.66, "Mz4": 2.04}
         '''
@@ -265,6 +384,7 @@ if __name__ == '__main__':
     noisy_odmr_signal = add_noise(odmr_signal, noise_std)
     # print(odmr_signal)
     import matplotlib.pyplot as plt
+
     plt.plot(omega, odmr_signal)
     plt.plot(omega, noisy_odmr_signal)
     plt.show()

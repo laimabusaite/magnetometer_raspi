@@ -80,10 +80,10 @@ def detect_peaks(x_data, y_data, debug=False):
             print(popt)
             print('Time:', time1 - time0)
             y_fitted = lorentz(x_data, popt[0], popt[1], popt[2], popt[3])
-            plt.plot(x_data, y_data, color='k', markersize=5, marker='o', linewidth=1)
+            plt.plot(x_data, y_data, markersize=5, marker='o', linewidth=1)
             p = plt.plot(x_data, y_fitted)
             col = p[0].get_color()
-            plt.plot(peak_positions, peak_amplitudes, "x", color=col, label='exp peaks')
+            plt.plot(peak_positions, peak_amplitudes, "x", ms=10, color=col, label='exp peaks')
             # plt.show()
 
 
