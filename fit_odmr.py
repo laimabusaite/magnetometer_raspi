@@ -17,6 +17,26 @@ class NVsetForFitting(nv.NVcenterSet):
     #     super().__init__(self, D=2870, Mz_array=np.array([0, 0, 0, 0]))
 
     def sum_odmr_voigt(self, x, B_labx, B_laby, B_labz, glor, D, Mz1, Mz2, Mz3, Mz4, fraction):
+        '''
+        Calculate Voigt profile
+        Parameters
+        ----------
+        x
+        B_labx
+        B_laby
+        B_labz
+        glor
+        D
+        Mz1
+        Mz2
+        Mz3
+        Mz4
+        fraction
+
+        Returns
+        -------
+        sum_odmr
+        '''
         asym_coef = 0
         # fraction = 0.9
         B_lab = np.array([B_labx, B_laby, B_labz])
@@ -41,6 +61,25 @@ class NVsetForFitting(nv.NVcenterSet):
         return sum_odmr
 
     def sum_odmr(self, x, B_labx, B_laby, B_labz, glor, D, Mz1, Mz2, Mz3, Mz4):
+        '''
+        Clculate Lorenzian profile
+        Parameters
+        ----------
+        x
+        B_labx
+        B_laby
+        B_labz
+        glor
+        D
+        Mz1
+        Mz2
+        Mz3
+        Mz4
+
+        Returns
+        -------
+        sum_odmr
+        '''
         B_lab = np.array([B_labx, B_laby, B_labz])
         Mz_array = np.array([Mz1, Mz2, Mz3, Mz4])
         B = np.linalg.norm(B_lab)
@@ -91,7 +130,25 @@ class NVsetForFitting(nv.NVcenterSet):
 
     def fit_odmr_voigt(self, x, y, init_params, varyB=True, varyGlor=True, varyD=True,
                          varyMz=False, varyFraction=False, save=True, save_filename='ODMR_fit_parameters.json'):
+        '''
 
+        Parameters
+        ----------
+        x
+        y
+        init_params
+        varyB
+        varyGlor
+        varyD
+        varyMz
+        varyFraction
+        save
+        save_filename
+
+        Returns
+        -------
+
+        '''
         # self.summodel = Model(self.sum_odmr)
         self.summodel = Model(self.sum_odmr_voigt)
         params = self.summodel.make_params(B_labx=init_params['B_labx'], B_laby=init_params['B_laby'],
@@ -120,20 +177,32 @@ class NVsetForFitting(nv.NVcenterSet):
             self.save_parameters(self.fitResultLorentz.best_values, save_filename)
 
     def save_parameters(self, dictionary_data, filename):
-
+        '''
+        Save dictionary data to json
+        Parameters
+        ----------
+        dictionary_data
+        filename
+        '''
         a_file = open(filename, "w")
         json.dump(dictionary_data, a_file)
         a_file.close()
-        #
-        # a_file = open(filename, "r")
-        # output = a_file.read()
-        # print(output)
-        # # OUTPUT
-        # # {"a": 1, "b": 2}
-        # a_file.close()
+
 
 
 def normalize_data(x_data, y_data, debug=False):
+    '''
+    Normalize ODMR data in range 0 to 1 for all peaks
+    Parameters
+    ----------
+    x_data : array like, microwave frequency data
+    y_data : array like, fluoescence data
+    debug : boolean, plots data for debuging
+
+    Returns
+    -------
+    y_unitary : normalized fluorescence
+    '''
     # normalized odmr
     y_norm = 1. - (y_data - min(y_data)) / (max(y_data) - min(y_data))
     # y_base = y_norm
@@ -238,15 +307,20 @@ def fit_full_odmr(x_data, y_data,
                                'Mz2': 0, 'Mz3': 0, 'Mz4': 0}, save=True,
                   save_filename="ODMR_fit_parameters.json", debug=False):
     '''
-    x_data and y_data:  array like
-    init_params: dictionary of inital parameters default:
-    init_params = {'B_labx': 169.12, 'B_laby': 87.71, 'B_labz': 40.39,
-                    'glor': 4.44, 'D': 2870,
-                    'Mz1': 0, 'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
-    save_filename: string, json filename to store fitting parameters default:
-    save_filename="ODMR_fit_parameters.json"
-    debug: Boolen prints fit results and plots data default:
-    debug=False
+
+    Parameters
+    ----------
+    x_data : array like, microwave frequency data
+    y_data : array like, fluoescence data
+    init_params : dictionary of inital parameters
+    save : boolean, whether to save parametrs to json
+    save_filename : string, json filename to store fitting parameters
+    debug : boolean, plots data for debuging
+
+    Returns
+    -------
+    fit_parameters : dictionary of fitted paramters
+
     '''
     x_data = np.array(x_data)
     y_data = np.array(y_data)
@@ -266,39 +340,7 @@ def fit_full_odmr(x_data, y_data,
     # print('First iteration: vary B \n init:')
     init_params0 = init_params
     print(init_params0)
-    # nv_for_fit.fit_odmr_lorentz(x_data, y_unitary, init_params0, varyB=True, varyGlor=False, varyD=False,
-    #                             varyMz=False, save=False)
-    #
-    # if debug:
-    #     # print('nv_for_fit.fitResultLorentz.fit_report()')
-    #     # print(nv_for_fit.fitResultLorentz.fit_report())
-    #     # print('nv_for_fit.fitResultLorentz.best_values')
-    #     # print(nv_for_fit.fitResultLorentz.best_values)
-    #     plt.figure()
-    #     plt.plot(x_data, y_unitary)
-    #     plt.plot(x_data, nv_for_fit.summodel.eval(nv_for_fit.params, x=x_data), 'r--')
-    #     plt.plot(x_data, nv_for_fit.fitResultLorentz.best_fit, 'r-')
-    #     # plt.show()
-    #
-    # # read parameters
-    # # filename = save_filename  # "ODMR_fit_parameters.json"
-    # # a_file = open(filename, "r")
-    # init_params = nv_for_fit.fitResultLorentz.best_values  # json.load(a_file)
-    # # parameters = dict(parameters)
-    # print('Second iteration: vary all \n init:')
-    # print(init_params)
-    # #
-    # nv_for_fit.fit_odmr_lorentz(x_data, y_unitary, init_params, varyB=True, varyGlor=True, varyD=False,
-    #                             varyMz=True, save_filename=save_filename, save=save)
-    #
-    # print('Result Lorentz')
-    # print(nv_for_fit.fitResultLorentz.best_values)
-    # if debug:
-    #     # print(nv_for_fit.fitResultLorentz.fit_report())
-    #     # print(nv_for_fit.fitResultLorentz.best_values)
-    #     plt.plot(x_data, nv_for_fit.summodel.eval(nv_for_fit.params, x=x_data), 'k--')
-    #     plt.plot(x_data, nv_for_fit.fitResultLorentz.best_fit, 'k-')
-    #     # plt.show()
+
 
     # TODO fit voigt
     nv_for_fit.fit_odmr_voigt(x_data, y_unitary, init_params0, varyB=True, varyGlor=False, varyD=False,
@@ -311,7 +353,7 @@ def fit_full_odmr(x_data, y_data,
         plt.figure('unitary', figsize=(5,4))
         # plt.plot(x_data, y_unitary, c='k')
         plt.plot(x_data, nv_for_fit.summodel.eval(nv_for_fit.params, x=x_data), 'g--', label='initial conditions')
-        # plt.plot(x_data, nv_for_fit.fitResultLorentz.best_fit, 'g-')
+        plt.plot(x_data, nv_for_fit.fitResultLorentz.best_fit, 'g-')
         plt.xlim(x_data[0], x_data[-1])
         # plt.xlabel('Microwave frequency (MHz)')
         # plt.ylabel('Normalized fluorescence intensity (arb. units)')
@@ -346,7 +388,7 @@ def fit_full_odmr(x_data, y_data,
         # print(nv_for_fit.fitResultLorentz.fit_report())
         # print('nv_for_fit.fitResultLorentz.best_values')
         # print(nv_for_fit.fitResultLorentz.best_values)
-        # plt.plot(x_data, nv_for_fit.summodel.eval(nv_for_fit.params, x=x_data), 'b--')
+        plt.plot(x_data, nv_for_fit.summodel.eval(nv_for_fit.params, x=x_data), 'b--')
         plt.figure('unitary', figsize=(5, 4))
         plt.plot(x_data, nv_for_fit.fitResultLorentz.best_fit, 'b-', label='fit')
         plt.xlim(x_data[0], x_data[-1])
@@ -357,7 +399,9 @@ def fit_full_odmr(x_data, y_data,
         # plt.savefig('/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/fit_odmr/fitted2.png')
         plt.show()
 
-    return nv_for_fit.fitResultLorentz.best_values
+    fit_parameters = nv_for_fit.fitResultLorentz.best_values
+
+    return fit_parameters
 
 
 def get_initial_magnetic_field(x_data, y_data):

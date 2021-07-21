@@ -60,10 +60,11 @@ if __name__ == '__main__':
         # ax.set_ylabel(ylabel1)
         ax.set_xlim(0, 10000)
 
-    ax4 = (dataframe_smooth - dataframe_smooth.loc[0, :]).plot(title=title)
+    ax4 = (dataframe_smooth - dataframe_smooth.loc[0, :]).plot(title=title, figsize=(5,4))
     ax4.set_xlabel(xlabel)
     ax4.set_ylabel(ylabel2)
     ax4.set_xlim(0, 10000)
+    # plt.tight_layout()
     plt.savefig('tables/temp_peaks/peak_change_smooth.pdf', bbox_inches='tight')
     plt.savefig('tables/temp_peaks/peak_change_smooth.png', bbox_inches='tight')
 
