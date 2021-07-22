@@ -81,6 +81,7 @@ if __name__ == '__main__':
         plt.ylabel(r'Magnetic field |B| (mT)')
         plt.xlim(0, 2200)
         plt.tight_layout()
+        print(B_folder, dataframe_temp['Bmod_measured_std'].mean())
 
         print("ass",B_folder,dataframe_temp['Bmod_measured'].mean()-dataframe_temp['Bmod_coil'].mean())
 

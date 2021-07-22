@@ -102,7 +102,20 @@ class NVsetForFitting(nv.NVcenterSet):
 
     def fit_odmr_lorentz(self, x, y, init_params, varyB=True, varyGlor=True, varyD=True,
                          varyMz=False, save=True, save_filename='ODMR_fit_parameters.json'):
+        '''
+        Parameters
+        ----------
+        x
+        y
+        init_params
+        varyB
+        varyGlor
+        varyD
+        varyMz
+        save
+        save_filename
 
+        '''
         self.summodel = Model(self.sum_odmr)
         # self.summodel = Model(self.sum_odmr_voigt)
         params = self.summodel.make_params(B_labx=init_params['B_labx'], B_laby=init_params['B_laby'],
