@@ -69,11 +69,11 @@ def exit_application(ser, ser_uart, s, spi):
     # ----
 
 
-def signal_handler(sig, frame):
-    '''
-    Handle ctr+c exit from the program.
-    '''
-    exit_application(ser, ser_uart, s, spi)
+# def signal_handler(sig, frame):
+#     '''
+#     Handle ctr+c exit from the program.
+#     '''
+#     exit_application(ser, ser_uart, s, spi)
 
 
 def read_values(channel, spi):
@@ -138,7 +138,7 @@ def receive_udp_data(s):
 
 def write_file(x,y,folder_name,s1,s2=""):
     '''
-    Write meassured individual ODMR peak data to file with a timestamp.
+    Write measured individual ODMR peak data to file with a timestamp.
     Outputs:
         ODMR signal data in two columns: ODMR signal intensity and microwave frequency.
     '''
@@ -160,7 +160,7 @@ def write_file(x,y,folder_name,s1,s2=""):
 
 def write_file_log(foldername,s1,s2):
     '''
-    Write log messages durring the execution of the program
+    Write log messages during the execution of the program
     Outputs:
         Log message file
     '''
@@ -235,7 +235,7 @@ def scan_peak(f0, dev, step_size, avg1, avg2, level, noise, write, data_name,fol
 
 def get_baseline(f0,points, ser, s):
     '''
-    Meassure the ODMR signal intensity base level.
+    Measure the ODMR signal intensity base level.
     Outputs:
         ODMR signal intensity base level as a float number.
     '''

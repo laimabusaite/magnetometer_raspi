@@ -4,6 +4,16 @@ import math
 
 
 def round_to_decimal(a, round_to=0):
+    '''
+    Parameters
+    ----------
+    a - float or array to round
+    round_to - number to round to
+
+    Returns
+    -------
+    rounded number
+    '''
     if abs(round_to) > 0:
         return np.round(a / round_to) * round_to
     else:
@@ -11,6 +21,17 @@ def round_to_decimal(a, round_to=0):
 
 
 def deltaB_from_deltaFrequencies(A_inv, deltaFrequencies):
+    '''
+    Calculates the magnetic field in the coordinate system of magnetometer.
+    Parameters
+    ----------
+    A_inv - partial derivative inverse matrix
+    deltaFrequencies - peak differences from
+
+    Returns
+    -------
+    Magnetic field in the coordinate system of magnetometer
+    '''
     # rotation_angles = {"alpha": 1.9626607183487732, "phi": 20.789077311199208, "theta": 179.4794019370279}
     # # rotation_angles = {"alpha": 87.34271435510534, "phi": 3.2800280875516754, "theta": 179.51519807708098}
     # alpha = rotation_angles['alpha']  # rotate around x
@@ -31,7 +52,7 @@ def deltaB_from_deltaFrequencies(A_inv, deltaFrequencies):
 
     # rotatedB = rotate(deltaB, alpha=alpha, phi=phi, theta=theta)
 
-    return  rotatedB
+    return rotatedB
 
 
 def add_noise(signal, noise_std=1):
@@ -172,6 +193,19 @@ def amper2gauss(current_list):
 
 
 def rotate(vec, theta=0.0, phi=0.0, alpha=0.0):
+    '''
+    Rotate vector with respect to spherical coordinate system
+    Parameters
+    ----------
+    vec
+    theta
+    phi
+    alpha
+
+    Returns
+    -------
+    rotated_vec
+    '''
     theta = np.radians(theta)
     phi = np.radians(phi)
     alpha = np.radians(alpha)
@@ -211,6 +245,18 @@ def amper2gauss_old(current, axis):
     return (m * current + b) * 10.
 
 def rotate_about_axis(vector, axis, angle):
+    '''
+    Rotate vector about axis by an angle
+    Parameters
+    ----------
+    vector: 3D array
+    axis: 3D array : axis to rotate about
+    angle
+
+    Returns
+    -------
+    rotated_vector
+    '''
     N_mat = np.array([[0, -axis[2], axis[1]],
                       [axis[2], 0, -axis[0]],
                       [-axis[1], axis[0], 0]])
