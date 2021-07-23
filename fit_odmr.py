@@ -437,7 +437,7 @@ def get_initial_magnetic_field(x_data, y_data):
 if __name__ == '__main__':
     import glob
 
-    filedir = 'RQnc/steps/0G'
+    filedir = 'example_data'
     filenames = glob.glob(f'{filedir}/full_scan*.dat')
 
     print(filenames)
