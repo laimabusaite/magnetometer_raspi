@@ -12,7 +12,8 @@ if __name__ == '__main__':
 
     # filedir = 'test_data_rp'
     # filedir = 'udp_test_full'
-    filedir = 'udp_test_fit_1'
+    # filedir = 'udp_test_fit_1'
+    filedir = 'example_data'
     filenames = sorted(glob.glob(f'{filedir}/*dev600*.dat'))
     fullscan_filename = filenames[-1]
     print(fullscan_filename)
@@ -42,6 +43,7 @@ if __name__ == '__main__':
                    'glor': 5, 'D': 2870, 'Mz1': 0,
                    'Mz2': 0, 'Mz3': 0, 'Mz4': 0}
     parameters = fit_odmr.fit_full_odmr(x_data_full, y_data_full, init_params=init_params, save=False, debug=False)
+    print(parameters)
     D = parameters["D"]
     Mz_array = np.array([parameters["Mz1"], parameters["Mz2"], parameters["Mz3"], parameters[
         "Mz4"]])
@@ -51,7 +53,7 @@ if __name__ == '__main__':
     y_data_full = fit_odmr.normalize_data(x_data_full, y_data_full, debug=False)
 
     plt.figure()
-    plt.plot(x_data_full, y_data_full, lw=2, c='k', label='fullscan')
+    plt.plot(x_data_full, y_data_full, lw=1, c='k', label='fullscan')
     # plt.scatter(peak_positions, 1, c='k')
 
     # NV center orientation in laboratory frame
@@ -80,7 +82,7 @@ if __name__ == '__main__':
         # peak = dp.detect_peaks_weighted(x_data, y_data)
         print(peak)
         # plt.plot(x_data, y_data, lw=2, c='k', label='fullscan')
-        plt.scatter(peak, 1, c='k')
+        plt.scatter(peak, 1, c='k', s=5)
 
         # for peak in peak_positions:
         if 2610 <= peak <= 2630:
@@ -99,7 +101,7 @@ if __name__ == '__main__':
     fr6_list = []
     fr8_list = []
     # filedir = 'test_width_contrast_data'
-    filenames = sorted(glob.glob(f'{filedir}/fit*.dat'))
+    filenames = sorted(glob.glob(f'{filedir}/a*.dat'))
     print(filenames)
     for filename in filenames:
         dataframe = dp.import_data(filename)
@@ -112,10 +114,11 @@ if __name__ == '__main__':
         # peak_positions, peak_amplitudes = dp.detect_peaks_cwt(x_data, y_data, widthMHz=np.array([5]), min_snr=1,
         #                                                       debug=False)
         peak = dp.detect_peaks(x_data, y_data, debug=False)
+
         # peak = dp.detect_peaks_weighted(x_data, y_data)
         y_data = 1. - (y_data - min(y_data)) / (max(y_data) - min(y_data))
-        plt.plot(x_data, y_data)
-        plt.scatter(peak, max(y_data))
+        plt.plot(x_data, y_data, label='', lw=1)
+        plt.scatter(peak, max(y_data), s=5)
         # for peak in peak_positions:
         if 2610 <= peak <= 2630:
             fr2_list.append(peak)
@@ -186,7 +189,7 @@ if __name__ == '__main__':
     dataframe_full['ODMR_calc2'] = y_data2
 
 
-    plt.plot(x_data_full, y_data2_norm, c='r')
+    plt.plot(x_data_full, y_data2_norm, c='r', label='calculated full scan', lw=1)
 
     for fr_range in fr_range_list:
         x_data = dataframe_full[fr_range]['MW']
@@ -199,7 +202,7 @@ if __name__ == '__main__':
         # print(peak)
         # plt.plot(x_data, y_data, lw=2, c='k', label='fullscan')
         y_data = 1. - (y_data - min(y_data)) / (max(y_data) - min(y_data))
-        plt.scatter(peak, max(y_data), c='r')
+        plt.scatter(peak, max(y_data), c='r', s=5)
 
         # for peak in peak_positions:
         if 2610 <= peak <= 2630:
@@ -218,4 +221,14 @@ if __name__ == '__main__':
     print(fr_list_2_diff)
 
     plt.legend()
+    plt.xlabel('Microwave frequency (MHz)')
+    plt.ylabel('Normalized fluorescence intensity (arb. units)')
+
+    for fr in fr_full_list:
+        plt.xlim(fr - 30, fr + 30)
+        plt.savefig(f'/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/full_plus_meas/fr{fr:.0f}.pdf')
+
+    plt.xlim(min(x_data_full), max(x_data_full))
+    plt.savefig(f'/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/full_plus_meas/full.pdf')
+
     plt.show()

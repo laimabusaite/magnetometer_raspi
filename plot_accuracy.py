@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
         dataframe_temp.sort_values(by='x_data', inplace=True)
 
-        print(dataframe_temp)
+        # print(dataframe_temp)
 
         p = plt.errorbar(x=dataframe_temp['x_data'], y=dataframe_temp['Bmod_coil'], label='B coil')
         color = p[0].get_color()
@@ -81,6 +81,9 @@ if __name__ == '__main__':
         plt.ylabel(r'Magnetic field |B| (mT)')
         plt.xlim(0, 2200)
         plt.tight_layout()
+        print(B_folder, dataframe_temp['Bmod_measured_std'].mean())
+
+        print("ass",B_folder,dataframe_temp['Bmod_measured'].mean()-dataframe_temp['Bmod_coil'].mean())
 
     plt.legend()
     plt.savefig('tables/accuracy_vs_devavg.png')

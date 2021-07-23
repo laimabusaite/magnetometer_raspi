@@ -16,8 +16,9 @@ if __name__ == '__main__':
     dB = 0.001
     # foldername = 'RQnc/arb1/0G'
     # foldername = 'RQnc/reverse_scan'
-    foldername = 'RQnc/bidirectional_scan'
-    num = 1
+    # foldername = 'RQnc/bidirectional_scan'
+    foldername = 'example_data'
+    num = 6
     if num == 13:
         num_str = f'{num}_real'
     else:
@@ -28,11 +29,17 @@ if __name__ == '__main__':
     #                  'RQnc/arb/2G/a12_dev30_avg16_dev30.0_peak2891.7_2021-07-07_02-39-01.311106.dat',
     #                  'RQnc/arb/2G/a12_dev30_avg16_dev30.0_peak3223.8_2021-07-07_02-39-02.089214.dat',
     #                  'RQnc/arb/2G/a12_dev30_avg16_dev30.0_peak3374.1_2021-07-07_02-39-02.866583.dat']
+
+    filename_list.sort(key=lambda x: f"{x.split('_')[-2]}_{x.split('_')[-1]}")
+    print('filename_list')
     print(filename_list)
-    filename_array = np.reshape(filename_list, (4, -1))
+    # filename_array = np.reshape(filename_list, (4, -1))
+    filename_array = np.reshape(filename_list, (-1, 4)).transpose()
+    print('filename_array')
     print(filename_array)
 
     filename_list = filename_array[:, 0]
+    print('filename_array[:, 0]')
     print(filename_list)
 
     full_filename_list = sorted(glob.glob(f'{foldername}/full_scan{num}*.dat'))
@@ -74,10 +81,13 @@ if __name__ == '__main__':
 
     A_inv = nv_center_set.calculateAinv(nv_center_set.B_lab, dB=dB)
 
+    # plt.figure('ODMR', figsize=(5,4))
     plt.plot(dataframe_full['MW'], dataframe_full['ODMR'], c='k')
 
     print(filename_array.shape)
     for idx in range(filename_array.shape[1]):
+        if idx > 0:
+            break
     # for idx in range(1):
         # print(idx)
         filename_list = filename_array[:, idx]
@@ -119,7 +129,7 @@ if __name__ == '__main__':
             peak = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=True)
             peak_list.append(peak)
 
-            plt.plot(dataframe['MW'], dataframe['ODMR'])
+            # plt.plot(dataframe['MW'], dataframe['ODMR'])
 
         peaks_list = np.array(peak_list).flatten()
         print(peaks_list)
@@ -134,5 +144,28 @@ if __name__ == '__main__':
         Bsens = deltaB_from_deltaFrequencies(A_inv, delta_frequencies)
 
         print("\nB =", Bsens, np.linalg.norm(Bsens))
+
+        plt.xlabel('Microwave frequency (MHz)')
+        plt.ylabel('Normalized fluorescence intensity (arb. units)')
+        fig = plt.gcf()
+        fig.set_size_inches(5, 4)
+        for fr in peaks_full_list:
+            plt.xlim(fr - 30, fr + 30)
+            ymin = min(dataframe_full[(dataframe_full['MW'] > fr - 30) & (dataframe_full['MW'] < fr + 30)]['ODMR'])
+            ymax = max(
+                dataframe_full[(dataframe_full['MW'] > fr - 30) & (dataframe_full['MW'] < fr + 30)]['ODMR'])
+            proc = 0.05
+            plt.ylim(ymin=ymin - (ymax - ymin)*proc, ymax=ymax + (ymax - ymin)*proc)
+            plt.tight_layout()
+            plt.savefig(f'/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/full_plus_meas/v3_fr{fr:.0f}.pdf', bbox_inches='tight')
+
+        fig = plt.gcf()
+        fig.set_size_inches(9, 4)
+        plt.xlim(min(dataframe_full['MW']), max(dataframe_full['MW']))
+        ymin = min(dataframe_full['ODMR'])
+        ymax = max(dataframe_full['ODMR'])
+        plt.ylim(ymin=ymin - (ymax - ymin) * proc, ymax=ymax + (ymax - ymin) * proc)
+        plt.tight_layout()
+        plt.savefig(f'/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/full_plus_meas/v3_full.pdf', bbox_inches='tight')
 
     plt.show()
