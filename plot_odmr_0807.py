@@ -16,9 +16,9 @@ if __name__ == '__main__':
     dB = 0.001
     # foldername = 'RQnc/arb1/0G'
     # foldername = 'RQnc/reverse_scan'
-    # foldername = 'RQnc/bidirectional_scan'
-    foldername = 'example_data'
-    num = 6
+    foldername = 'RQnc/bidirectional_scan'
+    # foldername = 'example_data'
+    num = 1
     if num == 13:
         num_str = f'{num}_real'
     else:
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     print('filename_array')
     print(filename_array)
 
-    filename_list = filename_array[:, 0]
+    # filename_list = filename_array[:, 0]
     print('filename_array[:, 0]')
     print(filename_list)
 
@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     dataframe_full = pd.read_csv(full_filename_list[0], names=['MW', 'ODMR'], sep='\t')
     print(dataframe_full.head())
-    # plt.plot(dataframe_full['MW'], dataframe_full['ODMR'], c='k')
+    plt.plot(dataframe_full['MW'], dataframe_full['ODMR'], c='k')
     B = 200
     theta = 80
     phi = 20
@@ -82,12 +82,12 @@ if __name__ == '__main__':
     A_inv = nv_center_set.calculateAinv(nv_center_set.B_lab, dB=dB)
 
     # plt.figure('ODMR', figsize=(5,4))
-    plt.plot(dataframe_full['MW'], dataframe_full['ODMR'], c='k')
+    # plt.plot(dataframe_full['MW'], dataframe_full['ODMR'], c='k')
 
     print(filename_array.shape)
     for idx in range(filename_array.shape[1]):
-        if idx > 0:
-            break
+        # if idx > 0:
+        #     break
     # for idx in range(1):
         # print(idx)
         filename_list = filename_array[:, idx]
@@ -120,16 +120,16 @@ if __name__ == '__main__':
                 debug=True
             else:
                 debug=False
-            peak_full = detect_peaks(x_full, y_full, debug=debug)
+            peak_full = detect_peaks(x_full, y_full, debug=False)
             peak_full_list.append(peak_full)
 
             dataframe = pd.read_csv(filename, names=['MW', 'ODMR'], sep='\t')
             print(dataframe.head())
 
-            peak = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=True)
+            peak = detect_peaks(dataframe['MW'], dataframe['ODMR'], debug=False)
             peak_list.append(peak)
 
-            # plt.plot(dataframe['MW'], dataframe['ODMR'])
+            plt.plot(dataframe['MW'], dataframe['ODMR'], marker='.', ls='-')
 
         peaks_list = np.array(peak_list).flatten()
         print(peaks_list)
@@ -149,15 +149,20 @@ if __name__ == '__main__':
         plt.ylabel('Normalized fluorescence intensity (arb. units)')
         fig = plt.gcf()
         fig.set_size_inches(5, 4)
-        for fr in peaks_full_list:
-            plt.xlim(fr - 30, fr + 30)
-            ymin = min(dataframe_full[(dataframe_full['MW'] > fr - 30) & (dataframe_full['MW'] < fr + 30)]['ODMR'])
-            ymax = max(
-                dataframe_full[(dataframe_full['MW'] > fr - 30) & (dataframe_full['MW'] < fr + 30)]['ODMR'])
-            proc = 0.05
-            plt.ylim(ymin=ymin - (ymax - ymin)*proc, ymax=ymax + (ymax - ymin)*proc)
-            plt.tight_layout()
-            plt.savefig(f'/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/full_plus_meas/v3_fr{fr:.0f}.pdf', bbox_inches='tight')
+        proc = 0.15
+
+        # for fr in peaks_full_list:
+        #     plt.xlim(fr - 30, fr + 30)
+        #     ymin = min(dataframe_full[(dataframe_full['MW'] > fr - 30) & (dataframe_full['MW'] < fr + 30)]['ODMR'])
+        #     ymax = max(
+        #         dataframe_full[(dataframe_full['MW'] > fr - 30) & (dataframe_full['MW'] < fr + 30)]['ODMR'])
+        #
+        #     plt.ylim(ymin=ymin - (ymax - ymin)*proc, ymax=ymax + (ymax - ymin)*proc)
+        #     plt.tight_layout()
+            # plt.savefig(f'/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/full_plus_meas/v3_fr{fr:.0f}.pdf', bbox_inches='tight')
+            # plt.savefig(f'/home/laima/Dropbox/Apps/Overleaf/ESA D09 - Electronics Design Document/v3_fr{fr:.0f}.pdf', bbox_inches='tight')
+            # plt.savefig(f'/home/laima/Dropbox/Apps/Overleaf/ESA D09 - Electronics Design Document/v3_fr{fr:.0f}.png',
+            #             bbox_inches='tight')
 
         fig = plt.gcf()
         fig.set_size_inches(9, 4)
@@ -166,6 +171,6 @@ if __name__ == '__main__':
         ymax = max(dataframe_full['ODMR'])
         plt.ylim(ymin=ymin - (ymax - ymin) * proc, ymax=ymax + (ymax - ymin) * proc)
         plt.tight_layout()
-        plt.savefig(f'/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/full_plus_meas/v3_full.pdf', bbox_inches='tight')
+        # plt.savefig(f'/home/laima/Dropbox/Apps/Overleaf/ESA D10 - Software  Design Document/full_plus_meas/v3_full.pdf', bbox_inches='tight')
 
     plt.show()
