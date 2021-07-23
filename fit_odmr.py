@@ -1,15 +1,15 @@
-import numpy as np
+# import numpy as np
 import NVcenter as nv
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from detect_peaks import *
 from lmfit.models import Model
 from scipy import interpolate
 from scipy.signal import find_peaks, savgol_filter
 from utilities import *
 import json
-from scipy.optimize import curve_fit
-
-from scipy.special import wofz
+# from scipy.optimize import curve_fit
+#
+# from scipy.special import wofz
 
 
 class NVsetForFitting(nv.NVcenterSet):

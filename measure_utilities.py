@@ -1,33 +1,41 @@
-import serial
-import time
+# import serial
+# import time
 import os
-import math
-
-import numpy as np
-
-from scipy.signal import find_peaks
-
-import spidev
-import signal
+# import math
+#
+# import numpy as np
+#
+# from scipy.signal import find_peaks
+#
+# import spidev
+# import signal
 import sys
-import RPi.GPIO as GPIO
-
-import NVcenter as nv
-from detect_peaks import *
-from utilities import *
-import glob
-
-import subprocess
+# import RPi.GPIO as GPIO
+#
+# import NVcenter as nv
+# from detect_peaks import *
+# from utilities import *
+# import glob
+#
+# import subprocess
 
 import datetime
-import string
+# import string
+#
+# import fit_odmr
+#
+# import socket
 
-import fit_odmr
 
-import socket
-
-
-def exit_application():
+def exit_application(ser, ser_uart, s, spi):
+    '''
+    Parameters
+    ----------
+    ser: Setting up the connection with the SynthNV PRO microwave generator
+    ser_uart: Setting up the UART connection to receive data from RedPitaya STEMlab 125-14
+    s: socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+    spi: SPI communication initialization for meassuring analog values using the Pi 3 Click Board
+    '''
     # Turning off the microwave generator and closing communication serial ports
     print("\nSHUT DOWN")
 
@@ -65,10 +73,10 @@ def signal_handler(sig, frame):
     '''
     Handle ctr+c exit from the program.
     '''
-    exit_application()
+    exit_application(ser, ser_uart, s, spi)
 
 
-def read_values(channel):
+def read_values(channel, spi):
     '''
     Read analog values from channel = 1 or 2 using the Pi 3 Click Shield.
     Outputs:
@@ -79,7 +87,7 @@ def read_values(channel):
     return data
 
 
-def read_values_rp():
+def read_values_rp(ser_uart):
     '''
     Read serial data from RedPitaya STEMlab 125-14 using UART.
     Outputs:
@@ -109,7 +117,7 @@ def read_values_rp():
     return received_data
 
 
-def receive_udp_data():
+def receive_udp_data(s):
     #print("{0:s}".format(data))
     get_data = 1
     while get_data:
@@ -166,7 +174,7 @@ def write_file_log(foldername,s1,s2):
     return
 
 
-def scan_peak(f0, dev, step_size, avg1, avg2, level, noise, write, data_name,folder_name):
+def scan_peak(f0, dev, step_size, avg1, avg2, level, noise, write, data_name,folder_name, ser, s):
     '''
     Scan one ODMR peak:
         f0 - scan central frequency
@@ -201,7 +209,7 @@ def scan_peak(f0, dev, step_size, avg1, avg2, level, noise, write, data_name,fol
             vmean_sum1=0
             for j in range(averages2):
                 while True:
-                    vmean[j] = receive_udp_data() #read_values_rp()
+                    vmean[j] = receive_udp_data(s) #read_values_rp()
                     if (vmean[j]<level*(100+noise)/100) and (vmean[j]>level*(100-noise)/100):
                         vmean_sum1+=vmean[j]
                         break
@@ -225,7 +233,7 @@ def scan_peak(f0, dev, step_size, avg1, avg2, level, noise, write, data_name,fol
     return frequency_chan[2:-2], average_chan1[2:-2]
 
 
-def get_baseline(f0,points):
+def get_baseline(f0,points, ser, s):
     '''
     Meassure the ODMR signal intensity base level.
     Outputs:
@@ -242,13 +250,13 @@ def get_baseline(f0,points):
     vmean_sum1=0
     vmean=[0 for i1 in range(points)]
     for i in range(points):
-        vmean[i] = receive_udp_data() #read_values_rp()
+        vmean[i] = receive_udp_data(s) #read_values_rp()
         vmean_sum1+=vmean[i]
 
     return vmean_sum1/points
 
 
-def microwave_generator_warmup():
+def microwave_generator_warmup(warmup, ser, s):
     print("\nMicrowave generator warmup.")
     print(".",end="",flush=True)
     for _ in range(warmup-2):
@@ -256,11 +264,11 @@ def microwave_generator_warmup():
 
     print(".")
     for _ in range(warmup):
-        level = get_baseline(2900,10)
-        scan_peak(2600,20,2,8,1,level,10,0,"","")
-        scan_peak(2800,20,2,8,1,level,10,0,"","")
-        scan_peak(3300,20,2,8,1,level,10,0,"","")
-        scan_peak(3400,20,2,8,1,level,10,0,"","")
+        level = get_baseline(2900,10, ser, s)
+        scan_peak(2600,20,2,8,1,level,10,0,"","", ser, s)
+        scan_peak(2800,20,2,8,1,level,10,0,"","", ser, s)
+        scan_peak(3300,20,2,8,1,level,10,0,"","", ser, s)
+        scan_peak(3400,20,2,8,1,level,10,0,"","", ser, s)
         print("#", end="", flush=True)
 
     print("\n`",end="",flush=True)
