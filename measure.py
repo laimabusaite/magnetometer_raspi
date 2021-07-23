@@ -1,5 +1,5 @@
 import serial
-# import time
+import time
 # import os
 # import math
 #
@@ -8,13 +8,13 @@ import serial
 # from scipy.signal import find_peaks
 
 import spidev
-# import signal
+import signal
 # import sys
 import RPi.GPIO as GPIO
 
-# import NVcenter as nv
-# from detect_peaks import *
-# from utilities import *
+import NVcenter as nv
+from detect_peaks import *
+from utilities import *
 from measure_utilities import *
 # import glob
 
