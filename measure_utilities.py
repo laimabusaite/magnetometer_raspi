@@ -221,7 +221,7 @@ def scan_peak(f0, dev, step_size, avg1, avg2, level, noise, write, data_name, fo
 
             average_chan[k][i] = vmean_sum1 / averages2
 
-    average_chan1 = np.mean(average_chan, axis=1)
+    average_chan1 = np.mean(average_chan, axis=0)
 
     if write:
         write_file(frequency_chan[2:-2], average_chan1[2:-2], folder_name, data_name,
