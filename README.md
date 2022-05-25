@@ -1,0 +1,2 @@
+# magnetometer_raspi
+
