@@ -144,9 +144,10 @@ if __name__ == '__main__':
         print(f'slope = {slope}, intercept = {intercept}')
         slope_list.append(slope)
         intercept_list.append(intercept)
-        dataframe_axis['Bmod_linear'] = slope * dataframe_axis[f'current_{dir_axis}_coil'] + intercept
         dataframe_axis['slope'] = slope
         dataframe_axis['intercept'] = intercept
+        dataframe_axis['Bmod_linear'] = slope * dataframe_axis[f'current_{dir_axis}_coil'] + intercept
+
 
         plt.figure()
         plt.title(f'{dir_axis}-axis')
@@ -162,17 +163,36 @@ if __name__ == '__main__':
         plt.errorbar(dataframe_axis[f'current_{dir_axis}_coil'], dataframe_axis['Bz_probe'],
                      yerr=dataframe_axis['Bz_std_probe'], label='Bz', marker='o', ms=5, capsize=2)
         plt.errorbar(dataframe_axis[f'current_{dir_axis}_coil'], dataframe_axis['Bmod_probe'],
-                     yerr=dataframe_axis['Bmod_std_probe'], label='Bz', marker='o', ms=5, capsize=2)
+                     yerr=dataframe_axis['Bmod_std_probe'], label='Bmod', marker='o', ms=5, capsize=2)
 
 
         plt.plot(dataframe_axis[f'current_{dir_axis}_coil'], dataframe_axis['Bmod_linear'], label=f'Blinear {slope:.5f} x + {intercept:.5f}')
 
         plt.xlabel('Current, mA')
         plt.ylabel('B, mT')
+        plt.savefig(f'{dir0}/extracted_data/{dir_axis}_coil_calibration.png')
         plt.legend()
-
+        #reorder columns
+        # Bmod_probe, Bmod_std_probe, Bx_probe, Bx_std_probe, By_probe, By_std_probe, Bz_probe, Bz_std_probe, current_x_coil, current_y_coil, current_z_coil, Bmod_linear, slope, intercept
+        dataframe_axis = dataframe_axis[[
+            'current_x_coil',
+            'current_y_coil',
+            'current_z_coil',
+            'Bx_probe',
+            'By_probe',
+            'Bz_probe',
+            'Bmod_probe',
+            'Bx_std_probe',
+            'By_std_probe',
+            'Bz_std_probe',
+            'Bmod_std_probe',
+            'Bmod_np_std_probe',
+            'slope',
+            'intercept',
+            'Bmod_linear'
+        ]]
         print(dataframe_axis)
-        # dataframe_axis.to_csv(f'coil_calibration/extracted_data/{dir_axis}_coil.dat', index=False)
+        dataframe_axis.to_csv(f'coil_calibration/extracted_data/{dir_axis}_coil.dat', index=False)
 
         plt.figure(f'{dir_axis}-axis std')
         plt.title(f'{dir_axis}-axis std')
@@ -190,8 +210,8 @@ if __name__ == '__main__':
     linear_parameters = {'slope' : slope_list,
                          'intercept': intercept_list}
 
-    # a_file = open(f'coil_calibration/extracted_data/linear_parameters.json', "w")
-    # json.dump(linear_parameters, a_file)
-    # a_file.close()
+    a_file = open(f'{dir0}/extracted_data/linear_parameters.json', "w")
+    json.dump(linear_parameters, a_file)
+    a_file.close()
 
     plt.show()
